@@ -261,7 +261,7 @@
 
       async function loadTrending() {
         try {
-          const res = await fetch(`${API_BASE}trending`);
+          const res = await fetch(`${API_BASE}/trending`);
           const data = await res.json();
 
           displayTrending(data.artists, data.tracks);
@@ -325,7 +325,7 @@
 
           try {
             const res = await fetch(
-              `${API_BASE}artist-top-tracks?artist=${encodeURIComponent(artist)}`,
+              `${API_BASE}/artist-top-tracks?artist=${encodeURIComponent(artist)}`,
             );
             const data = await res.json();
 
@@ -454,7 +454,7 @@
 
           try {
             const res = await fetch(
-              `${API_BASE}search-tracks?q=${encodeURIComponent(song)}`,
+              `${API_BASE}/search-tracks?q=${encodeURIComponent(song)}`,
             );
             const data = await res.json();
 

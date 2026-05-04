@@ -570,13 +570,13 @@
         try {
           const [artistsRes, songsRes, albumsRes] = await Promise.all([
             fetch(
-              `${API_BASE}genre-artists?genre=${encodeURIComponent(currentGenre)}`,
+              `${API_BASE}/genre-artists?genre=${encodeURIComponent(currentGenre)}`,
             ),
             fetch(
-              `${API_BASE}genre-songs?genre=${encodeURIComponent(currentGenre)}`,
+              `${API_BASE}/genre-songs?genre=${encodeURIComponent(currentGenre)}`,
             ),
             fetch(
-              `${API_BASE}genre-albums?genre=${encodeURIComponent(currentGenre)}`,
+              `${API_BASE}/genre-albums?genre=${encodeURIComponent(currentGenre)}`,
             ),
           ]);
 

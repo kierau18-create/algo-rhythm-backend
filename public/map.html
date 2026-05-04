@@ -129,7 +129,7 @@
 
       async function fetchSimilarArtists(artistName) {
         const res = await fetch(
-          `${API_BASE}similar-artists?artist=${encodeURIComponent(artistName)}`,
+          `${API_BASE}/similar-artists?artist=${encodeURIComponent(artistName)}`,
         );
 
         if (!res.ok) {

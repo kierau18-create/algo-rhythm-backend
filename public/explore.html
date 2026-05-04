@@ -337,7 +337,7 @@
 
         try {
           const res = await fetch(
-            `${API_BASE}search-tracks?q=${encodeURIComponent(track)}`,
+            `${API_BASE}/search-tracks?q=${encodeURIComponent(track)}`,
           );
 
           if (!res.ok) {
@@ -404,7 +404,7 @@
 
         try {
           const res = await fetch(
-            `${API_BASE}similar-tracks?track=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`,
+            `${API_BASE}/similar-tracks?track=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`,
           );
 
           if (!res.ok) {
@@ -449,7 +449,7 @@
 
         try {
           const res = await fetch(
-            `${API_BASE}similar-artists?artist=${encodeURIComponent(artist)}`,
+            `${API_BASE}/similar-artists?artist=${encodeURIComponent(artist)}`,
           );
 
           if (!res.ok) {
