@@ -569,13 +569,13 @@
         try {
           const [artistsRes, songsRes, albumsRes] = await Promise.all([
             fetch(
-              `http://localhost:3000/genre-artists?genre=${encodeURIComponent(currentGenre)}`,
+              `https://algo-rhythm-backend.onrender.com/genre-artists?genre=${encodeURIComponent(currentGenre)}`,
             ),
             fetch(
-              `http://localhost:3000/genre-songs?genre=${encodeURIComponent(currentGenre)}`,
+              `https://algo-rhythm-backend.onrender.com/genre-songs?genre=${encodeURIComponent(currentGenre)}`,
             ),
             fetch(
-              `http://localhost:3000/genre-albums?genre=${encodeURIComponent(currentGenre)}`,
+              `https://algo-rhythm-backend.onrender.com/genre-albums?genre=${encodeURIComponent(currentGenre)}`,
             ),
           ]);
 

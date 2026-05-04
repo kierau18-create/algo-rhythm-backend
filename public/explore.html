@@ -336,7 +336,7 @@
 
         try {
           const res = await fetch(
-            `http://localhost:3000/search-tracks?q=${encodeURIComponent(track)}`,
+            `https://algo-rhythm-backend.onrender.com/search-tracks?q=${encodeURIComponent(track)}`,
           );
 
           if (!res.ok) {
@@ -403,7 +403,7 @@
 
         try {
           const res = await fetch(
-            `http://localhost:3000/similar-tracks?track=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`,
+            `https://algo-rhythm-backend.onrender.com/similar-tracks?track=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`,
           );
 
           if (!res.ok) {
@@ -448,7 +448,7 @@
 
         try {
           const res = await fetch(
-            `http://localhost:3000/similar-artists?artist=${encodeURIComponent(artist)}`,
+            `https://algo-rhythm-backend.onrender.com/similar-artists?artist=${encodeURIComponent(artist)}`,
           );
 
           if (!res.ok) {

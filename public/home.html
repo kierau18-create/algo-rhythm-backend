@@ -260,7 +260,9 @@
 
       async function loadTrending() {
         try {
-          const res = await fetch("http://localhost:3000/trending");
+          const res = await fetch(
+            "https://algo-rhythm-backend.onrender.com/trending",
+          );
           const data = await res.json();
 
           displayTrending(data.artists, data.tracks);
@@ -324,7 +326,7 @@
 
           try {
             const res = await fetch(
-              `http://localhost:3000/artist-top-tracks?artist=${encodeURIComponent(artist)}`,
+              `https://algo-rhythm-backend.onrender.com/artist-top-tracks?artist=${encodeURIComponent(artist)}`,
             );
             const data = await res.json();
 
@@ -453,7 +455,7 @@
 
           try {
             const res = await fetch(
-              `http://localhost:3000/search-tracks?q=${encodeURIComponent(song)}`,
+              `https://algo-rhythm-backend.onrender.com/search-tracks?q=${encodeURIComponent(song)}`,
             );
             const data = await res.json();
 

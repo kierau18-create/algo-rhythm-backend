@@ -128,7 +128,7 @@
 
       async function fetchSimilarArtists(artistName) {
         const res = await fetch(
-          `http://localhost:3000/similar-artists?artist=${encodeURIComponent(
+          `https://algo-rhythm-backend.onrender.com/similar-artists?artist=${encodeURIComponent(
             artistName,
           )}`,
         );
