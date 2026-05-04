@@ -202,6 +202,7 @@
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
+      const API_BASE = "https://algo-rhythm-backend.onrender.com";
 
       let currentUser = null;
 
@@ -569,13 +570,13 @@
         try {
           const [artistsRes, songsRes, albumsRes] = await Promise.all([
             fetch(
-              `https://algo-rhythm-backend.onrender.com/genre-artists?genre=${encodeURIComponent(currentGenre)}`,
+              `${API_BASE}genre-artists?genre=${encodeURIComponent(currentGenre)}`,
             ),
             fetch(
-              `https://algo-rhythm-backend.onrender.com/genre-songs?genre=${encodeURIComponent(currentGenre)}`,
+              `${API_BASE}genre-songs?genre=${encodeURIComponent(currentGenre)}`,
             ),
             fetch(
-              `https://algo-rhythm-backend.onrender.com/genre-albums?genre=${encodeURIComponent(currentGenre)}`,
+              `${API_BASE}genre-albums?genre=${encodeURIComponent(currentGenre)}`,
             ),
           ]);
 

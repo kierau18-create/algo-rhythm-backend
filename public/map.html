@@ -71,6 +71,7 @@
       const height = 640;
       const input = document.getElementById("artistSearch");
       const button = document.getElementById("searchBtn");
+      const API_BASE = "https://algo-rhythm-backend.onrender.com/";
 
       let simulation;
 
@@ -128,9 +129,7 @@
 
       async function fetchSimilarArtists(artistName) {
         const res = await fetch(
-          `https://algo-rhythm-backend.onrender.com/similar-artists?artist=${encodeURIComponent(
-            artistName,
-          )}`,
+          `${API_BASE}similar-artists?artist=${encodeURIComponent(artistName)}`,
         );
 
         if (!res.ok) {

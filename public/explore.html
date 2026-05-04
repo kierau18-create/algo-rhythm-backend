@@ -249,6 +249,7 @@
         const songId = makeFavoriteId(song.name, song.artist);
         const ref = doc(db, "users", currentUser.uid, "favoriteSongs", songId);
         const snap = await getDoc(ref);
+        const API_BASE = "https://algo-rhythm-backend.onrender.com";
 
         if (snap.exists()) {
           await deleteDoc(ref);
@@ -336,7 +337,7 @@
 
         try {
           const res = await fetch(
-            `https://algo-rhythm-backend.onrender.com/search-tracks?q=${encodeURIComponent(track)}`,
+            `${API_BASE}search-tracks?q=${encodeURIComponent(track)}`,
           );
 
           if (!res.ok) {
@@ -403,7 +404,7 @@
 
         try {
           const res = await fetch(
-            `https://algo-rhythm-backend.onrender.com/similar-tracks?track=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`,
+            `${API_BASE}similar-tracks?track=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`,
           );
 
           if (!res.ok) {
@@ -448,7 +449,7 @@
 
         try {
           const res = await fetch(
-            `https://algo-rhythm-backend.onrender.com/similar-artists?artist=${encodeURIComponent(artist)}`,
+            `${API_BASE}similar-artists?artist=${encodeURIComponent(artist)}`,
           );
 
           if (!res.ok) {
