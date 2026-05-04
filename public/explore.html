@@ -102,6 +102,7 @@
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
+      const API_BASE = "https://algo-rhythm-backend.onrender.com";
 
       let currentUser = null;
 
@@ -249,7 +250,6 @@
         const songId = makeFavoriteId(song.name, song.artist);
         const ref = doc(db, "users", currentUser.uid, "favoriteSongs", songId);
         const snap = await getDoc(ref);
-        const API_BASE = "https://algo-rhythm-backend.onrender.com";
 
         if (snap.exists()) {
           await deleteDoc(ref);
