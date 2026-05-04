@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="final.css" />
+    <title>About Algo-Rhythm</title>
+  </head>
+
+  <body>
+    <aside>
+      <div>
+        <a href="home.html">
+          <img
+            class="mainlogo"
+            src="transparentlogo.png"
+            alt="Algo-Rhythm logo"
+          />
+        </a>
+      </div>
+
+      <nav>
+        <a href="profile.html">Profile</a> <br />
+        <br />
+        <a href="explore.html">Explore</a> <br />
+        <br />
+        <a href="foryou.html">For You</a> <br />
+        <br />
+        <a href="aboutus.html">About Us</a> <br />
+        <br />
+        <a href="map.html">Map</a> <br />
+      </nav>
+    </aside>
+
+    <section class="about-page">
+      <h1>About Algo-Rhythm</h1>
+      <br />
+
+      <div class="about-hero-box">
+        <p class="about-intro">
+          Algo-Rhythm is a music discovery app designed to help users find
+          songs, artists, and recommendations that match their taste. Instead of
+          endlessly searching for something new, users can browse trending
+          music, explore similar songs and artists, and save favorites in a more
+          interactive and personalized way.
+        </p>
+      </div>
+
+      <div class="container-fluid px-0">
+        <div class="row g-4 about-feature-row">
+          <div class="col-12 col-md-4">
+            <div class="about-feature-card h-100">
+              <h3>Discover</h3>
+              <p>
+                Browse trending artists and songs to quickly see what is popular
+                and worth listening to.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="about-feature-card h-100">
+              <h3>Explore</h3>
+              <p>
+                Search for similar songs and artists so you can find music that
+                matches the vibe you already enjoy.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="about-feature-card h-100">
+              <h3>Personalize</h3>
+              <p>
+                Save favorites and build a more custom music experience through
+                your profile and recommendation pages.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-carousel-box">
+        <h2 class="about-subheading">Take a Look Inside</h2>
+
+        <div id="aboutCarousel" class="carousel slide" data-bs-interval="false">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img
+                src="home-carousel.png"
+                class="d-block w-100 about-carousel-image"
+                alt="Algo-Rhythm home page with trending music and search"
+              />
+              <div class="carousel-caption d-none d-md-block about-caption">
+                <h5>Discover Music Your Way</h5>
+                <p>
+                  Browse music by title or artist and see what's currently
+                  trending.
+                </p>
+              </div>
+            </div>
+
+            <div class="carousel-item">
+              <img
+                src="explore-carousel.png"
+                class="d-block w-100 about-carousel-image"
+                alt="Algo-Rhythm explore page with similar songs and artists"
+              />
+              <div class="carousel-caption d-none d-md-block about-caption">
+                <h5>Explore Similar Sounds</h5>
+                <p>
+                  Expand your taste by finding music similar to what you already
+                  love.
+                </p>
+              </div>
+            </div>
+
+            <div class="carousel-item">
+              <img
+                src="profile-carousel.png"
+                class="d-block w-100 about-carousel-image"
+                alt="Algo-Rhythm profile page with favorites and account features"
+              />
+              <div class="carousel-caption d-none d-md-block about-caption">
+                <h5>Make it Personal</h5>
+                <p>
+                  Save favorites to build a more customized listening
+                  experience.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="carousel-control-prev"
+            type="button"
+            data-bs-target="#aboutCarousel"
+            data-bs-slide="prev"
+          >
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+
+          <button
+            class="carousel-control-next"
+            type="button"
+            data-bs-target="#aboutCarousel"
+            data-bs-slide="next"
+          >
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <div class="footer-main">
+          <span>&copy; Algo-Rhythm 2026</span>
+          <img class="logo" src="transparentlogo.png" alt="Logo" />
+        </div>
+
+        <div class="footer-attribution">
+          <!-- Only include on relevant pages -->
+          <p class="attribution-text">Recommendations powered by Last.fm</p>
+          <p class="attribution-text">Previews provided by Apple Music</p>
+        </div>
+      </footer>
+    </section>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      let currentPage = window.location.pathname.split("/").pop();
+
+      if (!currentPage) {
+        currentPage = "home.html";
+      }
+
+      document.querySelectorAll("nav a").forEach((link) => {
+        const linkPage = link.getAttribute("href").split("/").pop();
+
+        if (linkPage === currentPage) {
+          link.classList.add("active");
+        }
+      });
+    </script>
+  </body>
+</html>

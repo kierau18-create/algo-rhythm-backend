@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About Algo-Ryhthm</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="final.css" />
+  </head>
+  <body>
+    <aside>
+      <div>
+        <a href="home.html">
+          <img class="mainlogo" src="transparentlogo.png" alt="Logo" />
+        </a>
+      </div>
+      <nav>
+        <a href="profile.html">Profile</a> <br />
+        <br />
+        <a href="explore.html">Explore</a> <br />
+        <br />
+        <a href="foryou.html">For You</a> <br />
+        <br />
+        <a href="aboutus.html">About Us</a> <br />
+        <br />
+        <a href="map.html">Map</a> <br />
+      </nav>
+    </aside>
+
+    <section>
+      <h1>Home</h1>
+      <br />
+
+      <div class="browse-box">
+        <div class="browse-row">
+          <label for="song-search">Browse Songs by Title</label>
+          <input
+            type="text"
+            id="song-search"
+            placeholder="Enter a song title"
+          />
+          <button id="song-btn">Search</button>
+        </div>
+
+        <div class="browse-row">
+          <label for="artist-search">Browse Top Songs by Artist</label>
+          <input type="text" id="artist-search" placeholder="Enter an artist" />
+          <button id="artist-btn">Search</button>
+        </div>
+      </div>
+
+      <div id="results-section" class="content-box hidden">
+        <h2>Results</h2>
+
+        <div id="artists-section" class="list">
+          <strong>Top Songs</strong>
+          <div id="result-artists" class="explore-grid"></div>
+        </div>
+
+        <div id="songs-section" class="list">
+          <strong>Song Matches</strong>
+          <div id="result-songs" class="explore-grid"></div>
+        </div>
+      </div>
+
+      <div class="home-grid">
+        <div class="right-column full-width">
+          <div class="content-box trending-now-box">
+            <h2>Trending Now</h2>
+
+            <div class="trending-grid">
+              <div class="list">
+                <strong>Artists</strong>
+                <div id="trending-artists">
+                  <span>Loading...</span>
+                </div>
+              </div>
+
+              <div class="list">
+                <strong>Songs</strong>
+                <div id="trending-songs">
+                  <span>Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <div class="footer-main">
+          <span>&copy; Algo-Rhythm 2026</span>
+          <img class="logo" src="transparentlogo.png" alt="Logo" />
+        </div>
+
+        <div class="footer-attribution">
+          <!-- Only include on relevant pages -->
+          <p class="attribution-text">Recommendations powered by Last.fm</p>
+          <p class="attribution-text">Previews provided by Apple Music</p>
+        </div>
+      </footer>
+    </section>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        deleteDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyD8m4VHxpOsoKKCN3zNv8Bx4fwUl_490qs",
+        authDomain: "algorhythm-2.firebaseapp.com",
+        projectId: "algorhythm-2",
+        storageBucket: "algorhythm-2.firebasestorage.app",
+        messagingSenderId: "810931058698",
+        appId: "1:810931058698:web:06d0f9dd3055319cff07f3",
+        measurementId: "G-YE5ESZ401Z",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      let currentUser = null;
+
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+      });
+
+      window.AlgoRhythmPool = window.AlgoRhythmPool || {
+        queryPools: {},
+      };
+
+      function shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function buildKey(item, type = "generic") {
+        if (type === "artist") {
+          return (item?.name || item?.["#text"] || "unknown-artist")
+            .toString()
+            .trim()
+            .toLowerCase();
+        }
+
+        if (type === "song") {
+          const artistName =
+            typeof item?.artist === "string"
+              ? item.artist
+              : item?.artist?.name || item?.artist || "";
+          return `${item?.name || "unknown-song"}::${artistName}`
+            .trim()
+            .toLowerCase();
+        }
+
+        return JSON.stringify(item).toLowerCase();
+      }
+
+      function getQueryUniqueItems(
+        arr,
+        count,
+        type = "generic",
+        queryKey = "default",
+      ) {
+        if (!window.AlgoRhythmPool.queryPools[queryKey]) {
+          window.AlgoRhythmPool.queryPools[queryKey] = new Set();
+        }
+
+        const pool = window.AlgoRhythmPool.queryPools[queryKey];
+        const unique = [];
+        const localSeen = new Set();
+
+        arr.forEach((item) => {
+          const key = buildKey(item, type);
+          if (!localSeen.has(key)) {
+            localSeen.add(key);
+            unique.push(item);
+          }
+        });
+
+        let available = unique.filter(
+          (item) => !pool.has(buildKey(item, type)),
+        );
+
+        if (available.length === 0) {
+          pool.clear();
+          available = [...unique];
+        }
+
+        const picked = shuffleArray(available).slice(0, count);
+        picked.forEach((item) => pool.add(buildKey(item, type)));
+
+        return picked;
+      }
+
+      function makeFavoriteId(name, artist = "") {
+        return `${name}::${artist}`.trim().toLowerCase().replace(/\s+/g, "-");
+      }
+
+      async function isSongFavorited(song) {
+        if (!currentUser) return false;
+
+        const songId = makeFavoriteId(song.name, song.artist);
+        const ref = doc(db, "users", currentUser.uid, "favoriteSongs", songId);
+        const snap = await getDoc(ref);
+        return snap.exists();
+      }
+
+      async function toggleSongFavorite(song, buttonEl) {
+        if (!currentUser) {
+          alert("Please log in to save favorites.");
+          return;
+        }
+
+        const songId = makeFavoriteId(song.name, song.artist);
+        const ref = doc(db, "users", currentUser.uid, "favoriteSongs", songId);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          await deleteDoc(ref);
+          buttonEl.textContent = "♡";
+          buttonEl.classList.remove("favorited");
+          buttonEl.setAttribute("aria-label", "Add to favorites");
+          buttonEl.setAttribute("title", "Add to favorites");
+        } else {
+          await setDoc(ref, {
+            name: song.name,
+            artist: song.artist,
+            apple_url: song.apple_url || null,
+            spotify_url: song.spotify_url || null,
+            preview_url: song.preview_url || null,
+            artwork_url: song.artwork_url || null,
+            savedAt: new Date().toISOString(),
+          });
+          buttonEl.textContent = "♥";
+          buttonEl.classList.add("favorited");
+          buttonEl.setAttribute("aria-label", "Remove from favorites");
+          buttonEl.setAttribute("title", "Remove from favorites");
+        }
+      }
+
+      async function loadTrending() {
+        try {
+          const res = await fetch("http://localhost:3000/trending");
+          const data = await res.json();
+
+          displayTrending(data.artists, data.tracks);
+        } catch (error) {
+          console.error("Error fetching trending:", error);
+        }
+      }
+
+      function displayTrending(artists, tracks) {
+        const artistContainer = document.getElementById("trending-artists");
+        const trackContainer = document.getElementById("trending-songs");
+
+        artistContainer.innerHTML = "";
+        trackContainer.innerHTML = "";
+
+        const artistList = artists?.artists?.artist || [];
+        const trackList = tracks?.tracks?.track || [];
+
+        const randomArtists = getQueryUniqueItems(
+          artistList,
+          5,
+          "artist",
+          "home-trending-artists",
+        );
+
+        const randomTracks = getQueryUniqueItems(
+          trackList,
+          5,
+          "song",
+          "home-trending-songs",
+        );
+
+        randomArtists.forEach((artist) => {
+          const span = document.createElement("span");
+          span.textContent = artist.name || artist["#text"] || "Unknown Artist";
+          artistContainer.appendChild(span);
+        });
+
+        randomTracks.forEach((track) => {
+          const span = document.createElement("span");
+          span.textContent = `${track.name} - ${track.artist.name}`;
+          trackContainer.appendChild(span);
+        });
+      }
+
+      document
+        .getElementById("artist-btn")
+        .addEventListener("click", async () => {
+          const artist = document.getElementById("artist-search").value.trim();
+          if (!artist) return;
+
+          const resultsSection = document.getElementById("results-section");
+          const artistSection = document.getElementById("artists-section");
+          const songSection = document.getElementById("songs-section");
+          const artistContainer = document.getElementById("result-artists");
+
+          resultsSection.classList.remove("hidden");
+          artistSection.style.display = "block";
+          songSection.style.display = "none";
+          artistContainer.innerHTML = "Loading...";
+
+          try {
+            const res = await fetch(
+              `http://localhost:3000/artist-top-tracks?artist=${encodeURIComponent(artist)}`,
+            );
+            const data = await res.json();
+
+            let tracks = data?.toptracks?.track || [];
+
+            if (!Array.isArray(tracks)) {
+              tracks = [tracks];
+            }
+
+            artistContainer.innerHTML = "";
+
+            if (!tracks.length) {
+              artistContainer.innerHTML = "<span>No top tracks found.</span>";
+              return;
+            }
+
+            const randomTracks = getQueryUniqueItems(
+              tracks,
+              5,
+              "song",
+              `home-artist-toptracks-${artist.toLowerCase().trim()}`,
+            );
+
+            for (const track of randomTracks) {
+              const card = document.createElement("div");
+              card.className = "explore-card";
+
+              const artworkHtml = track.artwork_url
+                ? `<img src="${track.artwork_url}" alt="${track.name || "Track"} album cover" class="song-cover" />`
+                : "";
+
+              const previewHtml = track.preview_url
+                ? `
+            <div class="preview-player">
+              <audio controls preload="none">
+                <source src="${track.preview_url}" type="audio/mpeg" />
+                Your browser does not support audio playback.
+              </audio>
+            </div>
+          `
+                : `<div class="no-preview">No preview available for this track.</div>`;
+
+              const appleLink = track.apple_url
+                ? track.apple_url
+                : `https://music.apple.com/us/search?term=${encodeURIComponent(
+                    (track.name || "") + " " + artist,
+                  )}`;
+
+              const spotifyLink = `https://open.spotify.com/search/${encodeURIComponent(
+                (track.name || "") + " " + artist,
+              )}`;
+
+              const favoriteSong = {
+                name: track.name || "Unknown Track",
+                artist: artist,
+                apple_url: appleLink,
+                spotify_url: spotifyLink,
+                preview_url: track.preview_url || null,
+                artwork_url: track.artwork_url || null,
+              };
+
+              const saved = currentUser
+                ? await isSongFavorited(favoriteSong)
+                : false;
+
+              card.innerHTML = `
+            ${artworkHtml}
+
+            <div class="explore-song">
+              ${track.name || "Unknown Track"}
+            </div>
+
+            <div class="explore-artist">
+              ${artist}
+            </div>
+
+            ${previewHtml}
+
+            <div class="explore-links">
+              <button
+                class="favorite-btn ${saved ? "favorited" : ""}"
+                aria-label="${saved ? "Remove from favorites" : "Add to favorites"}"
+                title="${saved ? "Remove from favorites" : "Add to favorites"}"
+              >
+                ${saved ? "♥" : "♡"}
+              </button>
+
+              <a href="${appleLink}" target="_blank" rel="noopener noreferrer" aria-label="Open in Apple Music">
+                <img src="applemusic.svg" alt="Apple Music" class="music-logo" title="Open in Apple Music"/>
+              </a>
+              
+              <a href="${spotifyLink}" target="_blank" rel="noopener noreferrer" aria-label="Open in Spotify">
+                <img src="spotify.svg" alt="Spotify" class="music-logo" title="Open in Spotify"/>
+              </a>
+            </div>
+          `;
+
+              const favBtn = card.querySelector(".favorite-btn");
+              favBtn.addEventListener("click", () =>
+                toggleSongFavorite(favoriteSong, favBtn),
+              );
+
+              artistContainer.appendChild(card);
+            }
+          } catch (err) {
+            console.error("Artist top tracks error:", err);
+            artistContainer.innerHTML = "<span>Something went wrong.</span>";
+          }
+        });
+
+      document
+        .getElementById("song-btn")
+        .addEventListener("click", async () => {
+          const song = document.getElementById("song-search").value.trim();
+          if (!song) return;
+
+          const resultsSection = document.getElementById("results-section");
+          const artistSection = document.getElementById("artists-section");
+          const songSection = document.getElementById("songs-section");
+          const songContainer = document.getElementById("result-songs");
+
+          resultsSection.classList.remove("hidden");
+          songSection.style.display = "block";
+          artistSection.style.display = "none";
+          songContainer.innerHTML = "Loading...";
+
+          try {
+            const res = await fetch(
+              `http://localhost:3000/search-tracks?q=${encodeURIComponent(song)}`,
+            );
+            const data = await res.json();
+
+            let tracks = data?.results?.trackmatches?.track || [];
+
+            if (!Array.isArray(tracks)) {
+              tracks = [tracks];
+            }
+
+            songContainer.innerHTML = "";
+
+            if (!tracks.length) {
+              songContainer.innerHTML = "<span>No songs found.</span>";
+              return;
+            }
+
+            const randomTracks = getQueryUniqueItems(
+              tracks,
+              5,
+              "song",
+              `home-song-search-${song.toLowerCase().trim()}`,
+            );
+
+            for (const track of randomTracks) {
+              const card = document.createElement("div");
+              card.className = "explore-card";
+
+              const artistName =
+                typeof track.artist === "string"
+                  ? track.artist
+                  : track.artist?.name || "Unknown Artist";
+
+              const artworkHtml = track.artwork_url
+                ? `<img src="${track.artwork_url}" alt="${track.name || "Song"} album cover" class="song-cover" />`
+                : "";
+
+              const previewHtml = track.preview_url
+                ? `
+            <div class="preview-player">
+              <audio controls preload="none">
+                <source src="${track.preview_url}" type="audio/mpeg" />
+                Your browser does not support audio playback.
+              </audio>
+            </div>
+          `
+                : `<div class="no-preview">No preview available for this track.</div>`;
+
+              const appleLink = track.apple_url
+                ? track.apple_url
+                : `https://music.apple.com/us/search?term=${encodeURIComponent(
+                    (track.name || "") + " " + artistName,
+                  )}`;
+
+              const spotifyLink = `https://open.spotify.com/search/${encodeURIComponent(
+                (track.name || "") + " " + artistName,
+              )}`;
+
+              const favoriteSong = {
+                name: track.name || "Unknown Song",
+                artist: artistName,
+                apple_url: appleLink,
+                spotify_url: spotifyLink,
+                preview_url: track.preview_url || null,
+                artwork_url: track.artwork_url || null,
+              };
+
+              const saved = currentUser
+                ? await isSongFavorited(favoriteSong)
+                : false;
+
+              card.innerHTML = `
+            ${artworkHtml}
+
+            <div class="explore-song">
+              ${track.name || "Unknown Song"}
+            </div>
+
+            <div class="explore-artist">
+              ${artistName}
+            </div>
+
+            ${previewHtml}
+
+            <div class="explore-links">
+              <button
+                class="favorite-btn ${saved ? "favorited" : ""}"
+                aria-label="${saved ? "Remove from favorites" : "Add to favorites"}"
+                title="${saved ? "Remove from favorites" : "Add to favorites"}"
+              >
+                ${saved ? "♥" : "♡"}
+              </button>
+
+              <a href="${appleLink}" target="_blank" rel="noopener noreferrer" aria-label="Open in Apple Music">
+                <img src="applemusic.svg" alt="" class="music-logo" />
+              </a>
+              
+              <a href="${spotifyLink}" target="_blank" rel="noopener noreferrer" aria-label="Open in Spotify">
+                <img src="spotify.svg" alt="" class="music-logo" />
+              </a>
+            </div>
+          `;
+
+              const favBtn = card.querySelector(".favorite-btn");
+              favBtn.addEventListener("click", () =>
+                toggleSongFavorite(favoriteSong, favBtn),
+              );
+
+              songContainer.appendChild(card);
+            }
+          } catch (err) {
+            console.error("Song search error:", err);
+            songContainer.innerHTML = "<span>Something went wrong.</span>";
+          }
+        });
+
+      const homeSongInput = document.getElementById("song-search");
+      const homeArtistInput = document.getElementById("artist-search");
+
+      homeSongInput.addEventListener("input", () => {
+        if (homeSongInput.value.trim().length > 0) {
+          homeArtistInput.value = "";
+        }
+      });
+
+      homeArtistInput.addEventListener("input", () => {
+        if (homeArtistInput.value.trim().length > 0) {
+          homeSongInput.value = "";
+        }
+      });
+
+      loadTrending();
+
+      let currentAudio = null;
+
+      document.addEventListener(
+        "play",
+        (event) => {
+          const target = event.target;
+
+          if (target.tagName === "AUDIO") {
+            if (currentAudio && currentAudio !== target) {
+              currentAudio.pause();
+              currentAudio.currentTime = 0;
+            }
+
+            currentAudio = target;
+          }
+        },
+        true,
+      );
+      let currentPage = window.location.pathname.split("/").pop();
+
+      if (!currentPage) {
+        currentPage = "home.html";
+      }
+
+      document.querySelectorAll("nav a").forEach((link) => {
+        const linkPage = link.getAttribute("href").split("/").pop();
+
+        if (linkPage === currentPage) {
+          link.classList.add("active");
+        }
+      });
+    </script>
+  </body>
+</html>

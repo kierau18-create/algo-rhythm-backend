@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile</title>
+    <link rel="stylesheet" href="final.css" />
+  </head>
+
+  <body>
+    <aside>
+      <div>
+        <a href="home.html">
+          <img class="mainlogo" src="transparentlogo.png" alt="Logo" />
+        </a>
+      </div>
+      <nav>
+        <a href="profile.html">Profile</a> <br /><br />
+        <a href="explore.html">Explore</a> <br /><br />
+        <a href="foryou.html">For You</a> <br /><br />
+        <a href="aboutus.html">About Us</a> <br /><br />
+        <a href="map.html">Map</a> <br />
+      </nav>
+    </aside>
+
+    <section id="mainContent">
+      <h1>Profile</h1>
+
+      <div class="profile-page-shell">
+        <div id="profile">
+          <h3 class="profile">
+            Username: <span id="usernameDisplay">Not logged in</span>
+          </h3>
+        </div>
+
+        <button id="loginBtn" onclick="openModal()">Login / Sign Up</button>
+
+        <div id="userContent" class="hidden">
+          <h3 class="profile">Friends</h3>
+
+          <div class="profile-social">
+            <div class="social-panel">
+              <h4 class="profile">Find Users</h4>
+
+              <div class="browse-box">
+                <div class="browse-row">
+                  <input
+                    type="text"
+                    id="user-search-input"
+                    placeholder="Enter a username"
+                  />
+                  <button id="user-search-btn">Search</button>
+                </div>
+              </div>
+
+              <div id="user-search-results" class="social-list">
+                <p class="social-empty">Search for users to follow.</p>
+              </div>
+            </div>
+
+            <div class="social-panel">
+              <h4 class="profile">Followers</h4>
+              <div id="followers-list" class="social-list">
+                <p class="social-empty">No followers yet.</p>
+              </div>
+
+              <h4 class="profile social-subheading">Following</h4>
+              <div id="following-list" class="social-list">
+                <p class="social-empty">Not following anyone yet.</p>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="profile">Favorites</h3>
+
+          <div class="profile-favorites">
+            <div class="favorites-block">
+              <h4 class="profile">Songs</h4>
+              <div id="favoriteSongsList" class="favorites-list">
+                <p class="list">No favorite songs yet.</p>
+              </div>
+            </div>
+
+            <div class="favorites-block">
+              <h4 class="profile">Artists</h4>
+              <div id="favoriteArtistsList" class="favorites-list">
+                <p class="list">No favorite artists yet.</p>
+              </div>
+            </div>
+          </div>
+
+          <button id="logoutBtn" class="hidden" onclick="logout()">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <div id="authModal" class="modal hidden">
+        <div class="modal-content">
+          <h2 class="login" id="authTitle">Login</h2>
+
+          <div id="usernameField" style="display: none">
+            <input id="username" type="text" placeholder="Username" />
+            <br /><br />
+          </div>
+
+          <input id="email" type="email" placeholder="Email" />
+          <br /><br />
+
+          <input id="password" type="password" placeholder="Password" />
+          <br /><br />
+
+          <button id="authButton" onclick="handleAuth()">Login</button>
+          <br /><br />
+
+          <p id="toggleText">
+            Don't have an account?
+            <span
+              onclick="toggleMode()"
+              style="cursor: pointer; text-decoration: underline"
+            >
+              Sign up
+            </span>
+          </p>
+
+          <br />
+
+          <button onclick="closeModal()">Close</button>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <div class="footer-main">
+          <span>&copy; Algo-Rhythm 2026</span>
+          <img class="logo" src="transparentlogo.png" alt="Logo" />
+        </div>
+
+        <div class="footer-attribution">
+          <!-- Only include on relevant pages -->
+          <p class="attribution-text">Recommendations powered by Last.fm</p>
+          <p class="attribution-text">Previews provided by Apple Music</p>
+        </div>
+      </footer>
+    </section>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+        deleteDoc,
+        collection,
+        getDocs,
+        query,
+        orderBy,
+        limit,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyD8m4VHxpOsoKKCN3zNv8Bx4fwUl_490qs",
+        authDomain: "algorhythm-2.firebaseapp.com",
+        projectId: "algorhythm-2",
+        storageBucket: "algorhythm-2.firebasestorage.app",
+        messagingSenderId: "810931058698",
+        appId: "1:810931058698:web:06d0f9dd3055319cff07f3",
+        measurementId: "G-YE5ESZ401Z",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      let isLogin = true;
+
+      onAuthStateChanged(auth, (user) => {
+        updateUI(user);
+      });
+
+      window.openModal = () => {
+        document.getElementById("authModal").classList.remove("hidden");
+
+        const userContent = document.getElementById("userContent");
+        if (userContent && !auth.currentUser) {
+          userContent.style.display = "none";
+        }
+      };
+
+      window.closeModal = () => {
+        document.getElementById("authModal").classList.add("hidden");
+
+        const userContent = document.getElementById("userContent");
+        if (userContent && auth.currentUser) {
+          userContent.style.display = "block";
+        }
+      };
+
+      window.toggleMode = () => {
+        isLogin = !isLogin;
+
+        document.getElementById("authTitle").innerText = isLogin
+          ? "Login"
+          : "Sign Up";
+        document.getElementById("authButton").innerText = isLogin
+          ? "Login"
+          : "Sign Up";
+
+        document.getElementById("toggleText").innerHTML = isLogin
+          ? `Don't have an account? <span onclick="toggleMode()" style="cursor:pointer; text-decoration:underline;">Sign up</span>`
+          : `Already have an account? <span onclick="toggleMode()" style="cursor:pointer; text-decoration:underline;">Login</span>`;
+
+        document.getElementById("usernameField").style.display = isLogin
+          ? "none"
+          : "block";
+      };
+
+      window.handleAuth = async () => {
+        try {
+          const email = document.getElementById("email").value.trim();
+          const password = document.getElementById("password").value;
+          let username = null;
+
+          if (!isLogin) {
+            username = document.getElementById("username").value.trim();
+          }
+
+          if (isLogin) {
+            await signInWithEmailAndPassword(auth, email, password);
+          } else {
+            const userCredential = await createUserWithEmailAndPassword(
+              auth,
+              email,
+              password,
+            );
+            const user = userCredential.user;
+
+            await setDoc(doc(db, "users", user.uid), {
+              username: username || "User",
+              email: email,
+            });
+          }
+
+          closeModal();
+          updateUI(auth.currentUser);
+        } catch (error) {
+          console.error("Auth error:", error);
+          alert(error.message);
+        }
+      };
+
+      window.logout = async () => {
+        try {
+          await signOut(auth);
+          localStorage.removeItem("username");
+          updateUI(null);
+        } catch (err) {
+          console.error("Logout error:", err);
+        }
+      };
+
+      function makeFavoriteId(name, artist = "") {
+        return `${name}::${artist}`.trim().toLowerCase().replace(/\s+/g, "-");
+      }
+
+      async function removeFavoriteSong(song) {
+        if (!auth.currentUser) return;
+
+        const songId = makeFavoriteId(song.name, song.artist);
+        const ref = doc(
+          db,
+          "users",
+          auth.currentUser.uid,
+          "favoriteSongs",
+          songId,
+        );
+
+        try {
+          await deleteDoc(ref);
+          await loadFavorites(auth.currentUser);
+        } catch (error) {
+          console.error("Error removing favorite song:", error);
+          alert("Could not remove favorite song.");
+        }
+      }
+
+      async function removeFavoriteArtist(artist) {
+        if (!auth.currentUser) return;
+
+        const artistId = makeFavoriteId(artist.name);
+        const ref = doc(
+          db,
+          "users",
+          auth.currentUser.uid,
+          "favoriteArtists",
+          artistId,
+        );
+
+        try {
+          await deleteDoc(ref);
+          await loadFavorites(auth.currentUser);
+        } catch (error) {
+          console.error("Error removing favorite artist:", error);
+          alert("Could not remove favorite artist.");
+        }
+      }
+
+      function renderFavoriteSongs(items) {
+        const container = document.getElementById("favoriteSongsList");
+        container.innerHTML = "";
+
+        if (!items.length) {
+          container.innerHTML = `<p class="list">No favorite songs yet.</p>`;
+          return;
+        }
+
+        items.forEach((song) => {
+          const row = document.createElement("div");
+          row.className = "favorite-item";
+
+          const songName = song.name || "Unknown Song";
+          const artistName = song.artist || "Unknown Artist";
+          const appleUrl =
+            song.apple_url ||
+            `https://music.apple.com/us/search?term=${encodeURIComponent(
+              `${songName} ${artistName}`,
+            )}`;
+          const spotifyUrl =
+            song.spotify_url ||
+            `https://open.spotify.com/search/${encodeURIComponent(
+              `${songName} ${artistName}`,
+            )}`;
+
+          row.innerHTML = `
+            <div class="favorite-text">
+              <div class="explore-song">${songName}</div>
+              <div class="explore-artist">${artistName}</div>
+            </div>
+
+            <div class="favorite-actions">
+              <button
+                class="favorite-remove-btn"
+                aria-label="Remove from favorites"
+                title="Remove from favorites"
+              >
+                ♥
+              </button>
+
+              <a href="${appleUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open in Apple Music">
+                <img src="applemusic.svg" alt="Apple Music" class="music-logo" title="Open in Apple Music"/>
+              </a>
+
+              <a href="${spotifyUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open in Spotify">
+                <img src="spotify.svg" alt="Spotify" class="music-logo" title="Open in Spotify"/>
+              </a>
+            </div>
+          `;
+
+          const removeBtn = row.querySelector(".favorite-remove-btn");
+          removeBtn.addEventListener("click", () => removeFavoriteSong(song));
+
+          container.appendChild(row);
+        });
+      }
+
+      function renderFavoriteArtists(items) {
+        const container = document.getElementById("favoriteArtistsList");
+        container.innerHTML = "";
+
+        if (!items.length) {
+          container.innerHTML = `<p class="list">No favorite artists yet.</p>`;
+          return;
+        }
+
+        items.forEach((artist) => {
+          const row = document.createElement("div");
+          row.className = "favorite-item";
+
+          const artistName = artist.name || "Unknown Artist";
+          const appleUrl =
+            artist.apple_url ||
+            `https://music.apple.com/us/search?term=${encodeURIComponent(artistName)}`;
+          const spotifyUrl =
+            artist.spotify_url ||
+            `https://open.spotify.com/search/${encodeURIComponent(artistName)}`;
+
+          row.innerHTML = `
+            <div class="favorite-text">
+              <div class="explore-song">${artistName}</div>
+              <div class="explore-artist">Favorited Artist</div>
+            </div>
+
+            <div class="favorite-actions">
+              <button
+                class="favorite-remove-btn"
+                aria-label="Remove from favorites"
+                title="Remove from favorites"
+              >
+                ♥
+              </button>
+
+              <a href="${appleUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open in Apple Music">
+                <img src="applemusic.svg" alt="" class="music-logo" />
+              </a>
+
+              <a href="${spotifyUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open in Spotify">
+                <img src="spotify.svg" alt="" class="music-logo" />
+              </a>
+            </div>
+          `;
+
+          const removeBtn = row.querySelector(".favorite-remove-btn");
+          removeBtn.addEventListener("click", () =>
+            removeFavoriteArtist(artist),
+          );
+
+          container.appendChild(row);
+        });
+      }
+
+      async function loadFavorites(user) {
+        try {
+          const songsRef = collection(db, "users", user.uid, "favoriteSongs");
+          const artistsRef = collection(
+            db,
+            "users",
+            user.uid,
+            "favoriteArtists",
+          );
+
+          const [songsSnap, artistsSnap] = await Promise.all([
+            getDocs(songsRef),
+            getDocs(artistsRef),
+          ]);
+
+          const favoriteSongs = songsSnap.docs.map((doc) => doc.data());
+          const favoriteArtists = artistsSnap.docs.map((doc) => doc.data());
+
+          favoriteSongs.sort((a, b) =>
+            (b.savedAt || "").localeCompare(a.savedAt || ""),
+          );
+          favoriteArtists.sort((a, b) =>
+            (b.savedAt || "").localeCompare(a.savedAt || ""),
+          );
+
+          renderFavoriteSongs(favoriteSongs);
+          renderFavoriteArtists(favoriteArtists);
+        } catch (error) {
+          console.error("Error loading favorites:", error);
+          document.getElementById("favoriteSongsList").innerHTML =
+            `<p class="list">Could not load favorite songs.</p>`;
+          document.getElementById("favoriteArtistsList").innerHTML =
+            `<p class="list">Could not load favorite artists.</p>`;
+        }
+      }
+
+      async function isFollowingUser(targetUid) {
+        if (!auth.currentUser) return false;
+
+        const followRef = doc(
+          db,
+          "users",
+          auth.currentUser.uid,
+          "following",
+          targetUid,
+        );
+        const snap = await getDoc(followRef);
+        return snap.exists();
+      }
+
+      async function followUser(targetUser) {
+        if (!auth.currentUser) {
+          alert("Please log in first.");
+          return;
+        }
+
+        const currentUid = auth.currentUser.uid;
+
+        if (currentUid === targetUser.uid) {
+          alert("You can't follow yourself.");
+          return;
+        }
+
+        const currentUserSnap = await getDoc(doc(db, "users", currentUid));
+        const currentUserData = currentUserSnap.exists()
+          ? currentUserSnap.data()
+          : {};
+
+        await setDoc(
+          doc(db, "users", currentUid, "following", targetUser.uid),
+          {
+            uid: targetUser.uid,
+            username: targetUser.username || "User",
+            email: targetUser.email || "",
+            followedAt: new Date().toISOString(),
+          },
+        );
+
+        await setDoc(
+          doc(db, "users", targetUser.uid, "followers", currentUid),
+          {
+            uid: currentUid,
+            username:
+              currentUserData.username ||
+              auth.currentUser.displayName ||
+              "User",
+            email: auth.currentUser.email || "",
+            followedAt: new Date().toISOString(),
+          },
+        );
+
+        await loadFollowLists();
+      }
+
+      async function unfollowUser(targetUser) {
+        if (!auth.currentUser) return;
+
+        const currentUid = auth.currentUser.uid;
+
+        await deleteDoc(
+          doc(db, "users", currentUid, "following", targetUser.uid),
+        );
+        await deleteDoc(
+          doc(db, "users", targetUser.uid, "followers", currentUid),
+        );
+
+        await loadFollowLists();
+      }
+
+      function renderUserSearchResults(items) {
+        const container = document.getElementById("user-search-results");
+        container.innerHTML = "";
+
+        if (!items.length) {
+          container.innerHTML = `<p class="social-empty">No users found.</p>`;
+          return;
+        }
+
+        items.forEach((entry) => {
+          const row = document.createElement("div");
+          row.className = "user-item";
+
+          row.innerHTML = `
+            <div class="user-text">
+              <div class="user-name">${entry.user.username}</div>
+              <div class="user-email">${entry.user.email || ""}</div>
+            </div>
+
+            <button
+              class="follow-btn ${entry.following ? "following" : ""}"
+              aria-label="${entry.following ? "Unfollow user" : "Follow user"}"
+              title="${entry.following ? "Unfollow user" : "Follow user"}"
+            >
+              ${entry.following ? "Following" : "Follow"}
+            </button>
+          `;
+
+          const btn = row.querySelector(".follow-btn");
+          btn.addEventListener("click", async () => {
+            if (await isFollowingUser(entry.user.uid)) {
+              await unfollowUser(entry.user);
+              btn.textContent = "Follow";
+              btn.classList.remove("following");
+              btn.setAttribute("aria-label", "Follow user");
+              btn.setAttribute("title", "Follow user");
+            } else {
+              await followUser(entry.user);
+              btn.textContent = "Following";
+              btn.classList.add("following");
+              btn.setAttribute("aria-label", "Unfollow user");
+              btn.setAttribute("title", "Unfollow user");
+            }
+          });
+
+          container.appendChild(row);
+        });
+      }
+
+      async function searchUsers() {
+        const searchValue = document
+          .getElementById("user-search-input")
+          .value.trim()
+          .toLowerCase();
+
+        const resultsContainer = document.getElementById("user-search-results");
+        resultsContainer.innerHTML = "";
+
+        if (!searchValue) {
+          resultsContainer.innerHTML = `<p class="social-empty">Enter a username to search.</p>`;
+          return;
+        }
+
+        try {
+          const usersRef = collection(db, "users");
+          const q = query(usersRef, orderBy("username"), limit(25));
+          const snapshot = await getDocs(q);
+
+          const matches = [];
+
+          for (const docSnap of snapshot.docs) {
+            const data = docSnap.data();
+            const username = (data.username || "").toLowerCase();
+
+            if (
+              username.includes(searchValue) &&
+              auth.currentUser &&
+              docSnap.id !== auth.currentUser.uid
+            ) {
+              matches.push({
+                user: {
+                  uid: docSnap.id,
+                  username: data.username || "User",
+                  email: data.email || "",
+                },
+                following: await isFollowingUser(docSnap.id),
+              });
+            }
+          }
+
+          renderUserSearchResults(matches);
+        } catch (error) {
+          console.error("User search error:", error);
+          resultsContainer.innerHTML = `<p class="social-empty">Something went wrong.</p>`;
+        }
+      }
+
+      function renderFollowing(items) {
+        const container = document.getElementById("following-list");
+        container.innerHTML = "";
+
+        if (!items.length) {
+          container.innerHTML = `<p class="social-empty">Not following anyone yet.</p>`;
+          return;
+        }
+
+        items.forEach((user) => {
+          const row = document.createElement("div");
+          row.className = "user-item";
+
+          row.innerHTML = `
+            <div class="user-text">
+              <div class="user-name">${user.username || "User"}</div>
+              <div class="user-email">${user.email || ""}</div>
+            </div>
+
+            <button
+              class="follow-btn following"
+              aria-label="Unfollow user"
+              title="Unfollow user"
+            >
+              Following
+            </button>
+          `;
+
+          const btn = row.querySelector(".follow-btn");
+          btn.addEventListener("click", async () => {
+            await unfollowUser({
+              uid: user.uid,
+              username: user.username || "User",
+              email: user.email || "",
+            });
+          });
+
+          container.appendChild(row);
+        });
+      }
+
+      function renderFollowers(items) {
+        const container = document.getElementById("followers-list");
+        container.innerHTML = "";
+
+        if (!items.length) {
+          container.innerHTML = `<p class="social-empty">No followers yet.</p>`;
+          return;
+        }
+
+        items.forEach((user) => {
+          const row = document.createElement("div");
+          row.className = "user-item";
+
+          row.innerHTML = `
+            <div class="user-text">
+              <div class="user-name">${user.username || "User"}</div>
+              <div class="user-email">${user.email || ""}</div>
+            </div>
+          `;
+
+          container.appendChild(row);
+        });
+      }
+
+      async function loadFollowLists() {
+        if (!auth.currentUser) return;
+
+        const followingContainer = document.getElementById("following-list");
+        const followersContainer = document.getElementById("followers-list");
+
+        followingContainer.innerHTML = `<p class="social-empty">Loading...</p>`;
+        followersContainer.innerHTML = `<p class="social-empty">Loading...</p>`;
+
+        try {
+          const followingSnap = await getDocs(
+            query(
+              collection(db, "users", auth.currentUser.uid, "following"),
+              orderBy("followedAt", "desc"),
+            ),
+          );
+
+          const followersSnap = await getDocs(
+            query(
+              collection(db, "users", auth.currentUser.uid, "followers"),
+              orderBy("followedAt", "desc"),
+            ),
+          );
+
+          const following = followingSnap.docs.map((doc) => doc.data());
+          const followers = followersSnap.docs.map((doc) => doc.data());
+
+          renderFollowing(following);
+          renderFollowers(followers);
+        } catch (error) {
+          console.error("Error loading follow lists:", error);
+          followingContainer.innerHTML = `<p class="social-empty">Could not load following.</p>`;
+          followersContainer.innerHTML = `<p class="social-empty">Could not load followers.</p>`;
+        }
+      }
+
+      async function ensureUserProfileFields(user) {
+        if (!user) return null;
+
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+
+        let data = snap.exists() ? snap.data() : {};
+        const nextUsername = data.username || user.email || "User";
+        const nextEmail = data.email || user.email || "";
+
+        if (!data.username || !data.email) {
+          await setDoc(
+            userRef,
+            {
+              username: nextUsername,
+              email: nextEmail,
+            },
+            { merge: true },
+          );
+
+          data = {
+            ...data,
+            username: nextUsername,
+            email: nextEmail,
+          };
+        }
+
+        return data;
+      }
+
+      async function updateUI(user) {
+        const usernameDisplay = document.getElementById("usernameDisplay");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const userContent = document.getElementById("userContent");
+        const loginBtn = document.getElementById("loginBtn");
+
+        if (!user) {
+          usernameDisplay.textContent = "Not logged in";
+          logoutBtn.style.display = "none";
+          userContent.style.display = "none";
+          loginBtn.style.display = "inline-block";
+
+          document.getElementById("favoriteSongsList").innerHTML =
+            `<p class="list">No favorite songs yet.</p>`;
+          document.getElementById("favoriteArtistsList").innerHTML =
+            `<p class="list">No favorite artists yet.</p>`;
+          document.getElementById("followers-list").innerHTML =
+            `<p class="social-empty">No followers yet.</p>`;
+          document.getElementById("following-list").innerHTML =
+            `<p class="social-empty">Not following anyone yet.</p>`;
+          document.getElementById("user-search-results").innerHTML =
+            `<p class="social-empty">Search for users to follow.</p>`;
+          return;
+        }
+
+        logoutBtn.style.display = "block";
+        userContent.style.display = "block";
+        loginBtn.style.display = "none";
+
+        const savedUsername = localStorage.getItem("username");
+
+        if (savedUsername) {
+          usernameDisplay.textContent = savedUsername;
+        } else {
+          usernameDisplay.textContent = user.email;
+        }
+
+        try {
+          const profileData = await ensureUserProfileFields(user);
+
+          if (profileData?.username) {
+            usernameDisplay.textContent = profileData.username;
+            localStorage.setItem("username", profileData.username);
+          }
+        } catch (error) {
+          console.error("Firestore user fetch error:", error);
+        }
+
+        await Promise.all([loadFavorites(user), loadFollowLists()]);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const userSearchBtn = document.getElementById("user-search-btn");
+        const userSearchInput = document.getElementById("user-search-input");
+
+        if (userSearchBtn) {
+          userSearchBtn.addEventListener("click", searchUsers);
+        }
+
+        if (userSearchInput) {
+          userSearchInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              searchUsers();
+            }
+          });
+        }
+      });
+      let currentPage = window.location.pathname.split("/").pop();
+
+      if (!currentPage) {
+        currentPage = "home.html";
+      }
+
+      document.querySelectorAll("nav a").forEach((link) => {
+        const linkPage = link.getAttribute("href").split("/").pop();
+
+        if (linkPage === currentPage) {
+          link.classList.add("active");
+        }
+      });
+    </script>
+  </body>
+</html>

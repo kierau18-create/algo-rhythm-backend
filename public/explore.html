@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explore</title>
+    <link rel="stylesheet" href="final.css" />
+  </head>
+
+  <body>
+    <aside>
+      <div>
+        <a href="home.html">
+          <img class="mainlogo" src="transparentlogo.png" alt="Logo" />
+        </a>
+      </div>
+      <nav>
+        <a href="profile.html">Profile</a> <br /><br />
+        <a href="explore.html">Explore</a> <br /><br />
+        <a href="foryou.html">For You</a> <br /><br />
+        <a href="aboutus.html">About Us</a> <br /><br />
+        <a href="map.html">Map</a> <br />
+      </nav>
+    </aside>
+
+    <section>
+      <h1>Explore</h1>
+
+      <div class="browse-box">
+        <div class="browse-row">
+          <label for="songTitleInput">Find Similar Songs</label>
+          <input
+            type="text"
+            id="songTitleInput"
+            placeholder="Enter a song title"
+          />
+          <button id="song-search-btn">Search</button>
+        </div>
+
+        <div class="browse-row">
+          <label for="artistInput">Find Similar Artists</label>
+          <input
+            type="text"
+            id="artistInput"
+            placeholder="Enter an artist name"
+          />
+          <button id="artist-search-btn">Search</button>
+        </div>
+      </div>
+
+      <div id="results-section" class="content-box hidden">
+        <h2>Results</h2>
+        <div id="explore-results" class="explore-grid"></div>
+      </div>
+
+      <div id="songModal" class="modal hidden">
+        <div class="modal-content">
+          <h2>Select the correct song</h2>
+          <div id="song-options"></div>
+          <button class="close-btn" id="close-song-modal-btn">Close</button>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <div class="footer-main">
+          <span>&copy; Algo-Rhythm 2026</span>
+          <img class="logo" src="transparentlogo.png" alt="Logo" />
+        </div>
+
+        <div class="footer-attribution">
+          <!-- Only include on relevant pages -->
+          <p class="attribution-text">Recommendations powered by Last.fm</p>
+          <p class="attribution-text">Previews provided by Apple Music</p>
+        </div>
+      </footer>
+    </section>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        deleteDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyD8m4VHxpOsoKKCN3zNv8Bx4fwUl_490qs",
+        authDomain: "algorhythm-2.firebaseapp.com",
+        projectId: "algorhythm-2",
+        storageBucket: "algorhythm-2.firebasestorage.app",
+        messagingSenderId: "810931058698",
+        appId: "1:810931058698:web:06d0f9dd3055319cff07f3",
+        measurementId: "G-YE5ESZ401Z",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      let currentUser = null;
+
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+      });
+
+      window.AlgoRhythmPool = window.AlgoRhythmPool || {
+        queryPools: {},
+      };
+
+      window.AlgoRhythmExplore = window.AlgoRhythmExplore || {
+        queryPools: {},
+      };
+
+      function shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function buildKey(item, type = "generic") {
+        if (type === "artist") {
+          return (item?.name || "unknown-artist")
+            .toString()
+            .trim()
+            .toLowerCase();
+        }
+
+        if (type === "album") {
+          return `${item?.name || "unknown-album"}::${item?.artist || ""}`
+            .trim()
+            .toLowerCase();
+        }
+
+        if (type === "song") {
+          const artistName =
+            typeof item?.artist === "string"
+              ? item.artist
+              : item?.artist?.name || item?.artist || "";
+          return `${item?.name || "unknown-song"}::${artistName}`
+            .trim()
+            .toLowerCase();
+        }
+
+        return JSON.stringify(item).toLowerCase();
+      }
+
+      function getQueryUniqueItems(
+        arr,
+        count,
+        type = "generic",
+        queryKey = "default",
+      ) {
+        if (!window.AlgoRhythmPool.queryPools[queryKey]) {
+          window.AlgoRhythmPool.queryPools[queryKey] = new Set();
+        }
+
+        const pool = window.AlgoRhythmPool.queryPools[queryKey];
+        const unique = [];
+        const localSeen = new Set();
+
+        arr.forEach((item) => {
+          const key = buildKey(item, type);
+          if (!localSeen.has(key)) {
+            localSeen.add(key);
+            unique.push(item);
+          }
+        });
+
+        let available = unique.filter(
+          (item) => !pool.has(buildKey(item, type)),
+        );
+
+        if (available.length === 0) {
+          pool.clear();
+          available = [...unique];
+        }
+
+        const picked = shuffleArray(available).slice(0, count);
+        picked.forEach((item) => pool.add(buildKey(item, type)));
+
+        return picked;
+      }
+
+      function getExploreUniqueItems(
+        arr,
+        count,
+        type = "generic",
+        queryKey = "default",
+      ) {
+        if (!window.AlgoRhythmExplore.queryPools[queryKey]) {
+          window.AlgoRhythmExplore.queryPools[queryKey] = new Set();
+        }
+
+        const pool = window.AlgoRhythmExplore.queryPools[queryKey];
+        const unique = [];
+        const localSeen = new Set();
+
+        arr.forEach((item) => {
+          const key = buildKey(item, type);
+          if (!localSeen.has(key)) {
+            localSeen.add(key);
+            unique.push(item);
+          }
+        });
+
+        let available = unique.filter(
+          (item) => !pool.has(buildKey(item, type)),
+        );
+
+        if (available.length === 0) {
+          pool.clear();
+          available = [...unique];
+        }
+
+        const picked = shuffleArray(available).slice(0, count);
+        picked.forEach((item) => pool.add(buildKey(item, type)));
+
+        return picked;
+      }
+
+      function makeFavoriteId(name, artist = "") {
+        return `${name}::${artist}`.trim().toLowerCase().replace(/\s+/g, "-");
+      }
+
+      async function isSongFavorited(song) {
+        if (!currentUser) return false;
+
+        const songId = makeFavoriteId(song.name, song.artist);
+        const ref = doc(db, "users", currentUser.uid, "favoriteSongs", songId);
+        const snap = await getDoc(ref);
+        return snap.exists();
+      }
+
+      async function toggleSongFavorite(song, buttonEl) {
+        if (!currentUser) {
+          alert("Please log in to save favorites.");
+          return;
+        }
+
+        const songId = makeFavoriteId(song.name, song.artist);
+        const ref = doc(db, "users", currentUser.uid, "favoriteSongs", songId);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          await deleteDoc(ref);
+          buttonEl.textContent = "♡";
+          buttonEl.classList.remove("favorited");
+          buttonEl.setAttribute("aria-label", "Add to favorites");
+          buttonEl.setAttribute("title", "Add to favorites");
+        } else {
+          await setDoc(ref, {
+            name: song.name,
+            artist: song.artist,
+            apple_url: song.apple_url || null,
+            spotify_url: song.spotify_url || null,
+            preview_url: song.preview_url || null,
+            artwork_url: song.artwork_url || null,
+            savedAt: new Date().toISOString(),
+          });
+          buttonEl.textContent = "♥";
+          buttonEl.classList.add("favorited");
+          buttonEl.setAttribute("aria-label", "Remove from favorites");
+          buttonEl.setAttribute("title", "Remove from favorites");
+        }
+      }
+
+      async function isArtistFavorited(artist) {
+        if (!currentUser) return false;
+
+        const artistId = makeFavoriteId(artist.name);
+        const ref = doc(
+          db,
+          "users",
+          currentUser.uid,
+          "favoriteArtists",
+          artistId,
+        );
+        const snap = await getDoc(ref);
+        return snap.exists();
+      }
+
+      async function toggleArtistFavorite(artist, buttonEl) {
+        if (!currentUser) {
+          alert("Please log in to save favorites.");
+          return;
+        }
+
+        const artistId = makeFavoriteId(artist.name);
+        const ref = doc(
+          db,
+          "users",
+          currentUser.uid,
+          "favoriteArtists",
+          artistId,
+        );
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          await deleteDoc(ref);
+          buttonEl.textContent = "♡";
+          buttonEl.classList.remove("favorited");
+          buttonEl.setAttribute("aria-label", "Add to favorites");
+          buttonEl.setAttribute("title", "Add to favorites");
+        } else {
+          await setDoc(ref, {
+            name: artist.name,
+            apple_url: artist.apple_url || null,
+            spotify_url: artist.spotify_url || null,
+            savedAt: new Date().toISOString(),
+          });
+          buttonEl.textContent = "♥";
+          buttonEl.classList.add("favorited");
+          buttonEl.setAttribute("aria-label", "Remove from favorites");
+          buttonEl.setAttribute("title", "Remove from favorites");
+        }
+      }
+
+      async function searchSongOptions() {
+        const track = document.getElementById("songTitleInput").value.trim();
+        if (!track) return;
+
+        const optionsContainer = document.getElementById("song-options");
+        const modal = document.getElementById("songModal");
+
+        optionsContainer.innerHTML = "<p>Loading...</p>";
+        modal.classList.remove("hidden");
+
+        try {
+          const res = await fetch(
+            `http://localhost:3000/search-tracks?q=${encodeURIComponent(track)}`,
+          );
+
+          if (!res.ok) {
+            throw new Error(`HTTP error ${res.status}`);
+          }
+
+          const data = await res.json();
+          let tracks = data?.results?.trackmatches?.track || [];
+
+          if (!Array.isArray(tracks)) {
+            tracks = [tracks];
+          }
+
+          optionsContainer.innerHTML = "";
+
+          if (!tracks.length) {
+            optionsContainer.innerHTML = "<p>No matching songs found.</p>";
+            return;
+          }
+
+          const randomTracks = getQueryUniqueItems(
+            tracks,
+            8,
+            "song",
+            `explore-song-options-${track.toLowerCase().trim()}`,
+          );
+
+          randomTracks.forEach((song) => {
+            const artistName =
+              typeof song.artist === "string"
+                ? song.artist
+                : song.artist?.name || "Unknown Artist";
+
+            const button = document.createElement("button");
+            button.className = "option-btn";
+            button.innerHTML = `
+              <strong>${song.name || "Unknown Song"}</strong><br>
+              <span>${artistName}</span>
+            `;
+
+            button.onclick = () => {
+              closeSongModal();
+              handleSelectedSong(song.name, artistName);
+            };
+
+            optionsContainer.appendChild(button);
+          });
+        } catch (err) {
+          console.error("Song option search error:", err);
+          optionsContainer.innerHTML = "<p>Something went wrong.</p>";
+        }
+      }
+
+      function closeSongModal() {
+        document.getElementById("songModal").classList.add("hidden");
+      }
+
+      async function handleSelectedSong(track, artist) {
+        const resultsSection = document.getElementById("results-section");
+        const container = document.getElementById("explore-results");
+
+        resultsSection.classList.remove("hidden");
+        container.innerHTML = "Loading...";
+
+        try {
+          const res = await fetch(
+            `http://localhost:3000/similar-tracks?track=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`,
+          );
+
+          if (!res.ok) {
+            throw new Error(`HTTP error ${res.status}`);
+          }
+
+          const data = await res.json();
+          const results = data?.similartracks?.track || [];
+
+          container.innerHTML = "";
+
+          if (!results.length) {
+            container.innerHTML = "<p>No similar songs found.</p>";
+            return;
+          }
+
+          const randomResults = getExploreUniqueItems(
+            results,
+            6,
+            "song",
+            `explore-similar-songs-${track.toLowerCase().trim()}-${artist.toLowerCase().trim()}`,
+          );
+
+          for (const rec of randomResults) {
+            await createSongCard(rec);
+          }
+        } catch (err) {
+          console.error("Similar song error:", err);
+          container.innerHTML = "<p>Something went wrong.</p>";
+        }
+      }
+
+      async function handleArtistSearch() {
+        const artist = document.getElementById("artistInput").value.trim();
+        if (!artist) return;
+
+        const resultsSection = document.getElementById("results-section");
+        const container = document.getElementById("explore-results");
+
+        resultsSection.classList.remove("hidden");
+        container.innerHTML = "Loading...";
+
+        try {
+          const res = await fetch(
+            `http://localhost:3000/similar-artists?artist=${encodeURIComponent(artist)}`,
+          );
+
+          if (!res.ok) {
+            throw new Error(`HTTP error ${res.status}`);
+          }
+
+          const data = await res.json();
+          const results = data?.similarartists?.artist || [];
+
+          container.innerHTML = "";
+
+          if (!results.length) {
+            container.innerHTML = "<p>No similar artists found.</p>";
+            return;
+          }
+
+          const randomResults = getExploreUniqueItems(
+            results,
+            6,
+            "artist",
+            `explore-similar-artists-${artist.toLowerCase().trim()}`,
+          );
+
+          for (const rec of randomResults) {
+            await createArtistCard(rec);
+          }
+        } catch (err) {
+          console.error("Similar artist error:", err);
+          container.innerHTML = "<p>Something went wrong.</p>";
+        }
+      }
+
+      async function createSongCard(rec) {
+        const container = document.getElementById("explore-results");
+
+        const recommendedArtist =
+          typeof rec.artist === "string"
+            ? rec.artist
+            : rec.artist?.name || "Unknown Artist";
+
+        const card = document.createElement("div");
+        card.className = "explore-card";
+
+        const artworkHtml = rec.artwork_url
+          ? `<img src="${rec.artwork_url}" alt="${rec.name || "Song"} album cover" class="song-cover" />`
+          : "";
+
+        const previewHtml = rec.preview_url
+          ? `
+        <div class="preview-player">
+          <audio controls preload="none">
+            <source src="${rec.preview_url}" type="audio/mpeg" />
+            Your browser does not support audio playback.
+          </audio>
+        </div>
+      `
+          : `
+        <div class="no-preview">No preview available for this track.</div>
+      `;
+
+        const appleLink = rec.apple_url
+          ? rec.apple_url
+          : `https://music.apple.com/us/search?term=${encodeURIComponent(
+              (rec.name || "") + " " + recommendedArtist,
+            )}`;
+
+        const spotifyLink = rec.spotify_url
+          ? rec.spotify_url
+          : `https://open.spotify.com/search/${encodeURIComponent(
+              (rec.name || "") + " " + recommendedArtist,
+            )}`;
+
+        const favoriteSong = {
+          name: rec.name || "Unknown Song",
+          artist: recommendedArtist,
+          apple_url: appleLink,
+          spotify_url: spotifyLink,
+          preview_url: rec.preview_url || null,
+          artwork_url: rec.artwork_url || null,
+        };
+
+        const saved = currentUser ? await isSongFavorited(favoriteSong) : false;
+
+        card.innerHTML = `
+      ${artworkHtml}
+
+      <div class="explore-song">
+        ${rec.name || "Unknown Song"}
+      </div>
+
+      <div class="explore-artist">
+        ${recommendedArtist}
+      </div>
+
+      <div class="explore-explanation">
+        ${rec.ai_explanation || "Recommended because it has a similar vibe and style."}
+      </div>
+
+      ${previewHtml}
+
+      <div class="explore-links">
+        <button
+          class="favorite-btn ${saved ? "favorited" : ""}"
+          aria-label="${saved ? "Remove from favorites" : "Add to favorites"}"
+          title="${saved ? "Remove from favorites" : "Add to favorites"}"
+        >
+          ${saved ? "♥" : "♡"}
+        </button>
+
+        <a href="${appleLink}" target="_blank" rel="noopener noreferrer" aria-label="Open in Apple Music">
+          <img src="applemusic.svg" alt="Apple Music" class="music-logo" title="Open in Apple Music"/>
+        </a>
+        
+        <a href="${spotifyLink}" target="_blank" rel="noopener noreferrer" aria-label="Open in Spotify">
+          <img src="spotify.svg" alt="Spotify" class="music-logo" title="Open in Spotify"/>
+        </a>
+      </div>
+    `;
+
+        const favBtn = card.querySelector(".favorite-btn");
+        favBtn.addEventListener("click", () =>
+          toggleSongFavorite(favoriteSong, favBtn),
+        );
+
+        container.appendChild(card);
+      }
+
+      async function createArtistCard(rec) {
+        const container = document.getElementById("explore-results");
+
+        const artistName = rec.name || "Unknown Artist";
+
+        const card = document.createElement("div");
+        card.className = "explore-card";
+
+        const artistData = {
+          name: artistName,
+          apple_url: `https://music.apple.com/us/search?term=${encodeURIComponent(artistName)}`,
+          spotify_url: `https://open.spotify.com/search/${encodeURIComponent(artistName)}`,
+        };
+
+        const saved = currentUser ? await isArtistFavorited(artistData) : false;
+
+        card.innerHTML = `
+      <div class="explore-song">${artistName}</div>
+      <div class="explore-artist">Similar Artist</div>
+      <div class="explore-explanation">
+        ${rec.ai_explanation || "Recommended because this artist shares a similar style and listener appeal."}
+      </div>
+      <div class="explore-links">
+        <button
+          class="favorite-btn ${saved ? "favorited" : ""}"
+          aria-label="${saved ? "Remove from favorites" : "Add to favorites"}"
+          title="${saved ? "Remove from favorites" : "Add to favorites"}"
+        >
+          ${saved ? "♥" : "♡"}
+        </button>
+
+        <a href="https://music.apple.com/us/search?term=${encodeURIComponent(artistName)}" target="_blank" rel="noopener noreferrer" aria-label="Open in Apple Music">
+          <img src="applemusic.svg" alt="" class="music-logo" />
+        </a>
+        
+        <a href="https://open.spotify.com/search/${encodeURIComponent(artistName)}" target="_blank" rel="noopener noreferrer" aria-label="Open in Spotify">
+          <img src="spotify.svg" alt="" class="music-logo" />
+        </a>
+      </div>
+    `;
+
+        const favBtn = card.querySelector(".favorite-btn");
+        favBtn.addEventListener("click", () =>
+          toggleArtistFavorite(artistData, favBtn),
+        );
+
+        container.appendChild(card);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const exploreSongInput = document.getElementById("songTitleInput");
+        const exploreArtistInput = document.getElementById("artistInput");
+        const songSearchBtn = document.getElementById("song-search-btn");
+        const artistSearchBtn = document.getElementById("artist-search-btn");
+        const closeSongModalBtn = document.getElementById(
+          "close-song-modal-btn",
+        );
+
+        if (songSearchBtn) {
+          songSearchBtn.addEventListener("click", searchSongOptions);
+        }
+
+        if (artistSearchBtn) {
+          artistSearchBtn.addEventListener("click", handleArtistSearch);
+        }
+
+        if (closeSongModalBtn) {
+          closeSongModalBtn.addEventListener("click", closeSongModal);
+        }
+
+        if (exploreSongInput && exploreArtistInput) {
+          exploreSongInput.addEventListener("input", () => {
+            if (exploreSongInput.value.trim() !== "") {
+              exploreArtistInput.value = "";
+            }
+          });
+
+          exploreArtistInput.addEventListener("input", () => {
+            if (exploreArtistInput.value.trim() !== "") {
+              exploreSongInput.value = "";
+            }
+          });
+        }
+      });
+
+      let currentAudio = null;
+
+      document.addEventListener(
+        "play",
+        (event) => {
+          const target = event.target;
+
+          if (target.tagName === "AUDIO") {
+            if (currentAudio && currentAudio !== target) {
+              currentAudio.pause();
+              currentAudio.currentTime = 0;
+            }
+
+            currentAudio = target;
+          }
+        },
+        true,
+      );
+      let currentPage = window.location.pathname.split("/").pop();
+
+      if (!currentPage) {
+        currentPage = "home.html";
+      }
+
+      document.querySelectorAll("nav a").forEach((link) => {
+        const linkPage = link.getAttribute("href").split("/").pop();
+
+        if (linkPage === currentPage) {
+          link.classList.add("active");
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Algo-Rhythm | For You</title>
+    <link rel="stylesheet" href="final.css" />
+  </head>
+
+  <body class="foryou-page">
+    <aside class="foryou-sidebar">
+      <div>
+        <a href="home.html">
+          <img class="mainlogo" src="transparentlogo.png" alt="Logo" />
+        </a>
+      </div>
+
+      <nav class="foryou-nav">
+        <a href="profile.html">Profile</a><br /><br />
+        <a href="explore.html">Explore</a><br /><br />
+        <a href="foryou.html">For You</a><br /><br />
+        <a href="aboutus.html">About Us</a><br /><br />
+        <a href="map.html">Map</a><br />
+      </nav>
+    </aside>
+
+    <section class="foryou-main">
+      <div class="foryou-hero-box">
+        <div class="foryou-hero-text">
+          <h2>Made For Your Taste</h2>
+          <p>
+            Pick one genre and get a fresh set of artists, songs, and albums
+            every time you click.
+          </p>
+        </div>
+
+        <div class="foryou-genre-buttons">
+          <button
+            class="foryou-genre-btn"
+            data-genre="indie"
+            onclick="selectGenre('indie')"
+          >
+            Indie
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="pop"
+            onclick="selectGenre('pop')"
+          >
+            Pop
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="rap"
+            onclick="selectGenre('rap')"
+          >
+            Rap
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="rnb"
+            onclick="selectGenre('rnb')"
+          >
+            R&amp;B
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="rock"
+            onclick="selectGenre('rock')"
+          >
+            Rock
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="electronic"
+            onclick="selectGenre('electronic')"
+          >
+            Electronic
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="latin"
+            onclick="selectGenre('latin')"
+          >
+            Latin
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="underground"
+            onclick="selectGenre('underground')"
+          >
+            Underground
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="country"
+            onclick="selectGenre('country')"
+          >
+            Country
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="alternative"
+            onclick="selectGenre('alternative')"
+          >
+            Alternative
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="hip-hop"
+            onclick="selectGenre('hip-hop')"
+          >
+            Hip-Hop
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="folk"
+            onclick="selectGenre('folk')"
+          >
+            Folk
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="jazz"
+            onclick="selectGenre('jazz')"
+          >
+            Jazz
+          </button>
+          <button
+            class="foryou-genre-btn"
+            data-genre="kpop"
+            onclick="selectGenre('kpop')"
+          >
+            K-Pop
+          </button>
+        </div>
+
+        <div class="foryou-current-genre">
+          <br />
+          <span>Current genre:</span>
+          <strong id="currentGenreLabel">None selected</strong>
+        </div>
+      </div>
+
+      <div class="foryou-grid foryou-grid-custom">
+        <div class="foryou-left-column">
+          <div class="foryou-card">
+            <h3>Artists</h3>
+            <div id="artists" class="foryou-list"></div>
+          </div>
+
+          <div class="foryou-card">
+            <h3>Albums</h3>
+            <div id="albums" class="foryou-list"></div>
+          </div>
+        </div>
+
+        <div class="foryou-card foryou-songs-card">
+          <h3>Songs</h3>
+          <div id="songs" class="foryou-list"></div>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <div class="footer-main">
+          <span>&copy; Algo-Rhythm 2026</span>
+          <img class="logo" src="transparentlogo.png" alt="Logo" />
+        </div>
+
+        <div class="footer-attribution">
+          <!-- Only include on relevant pages -->
+          <p class="attribution-text">Recommendations powered by Last.fm</p>
+          <p class="attribution-text">Previews provided by Apple Music</p>
+        </div>
+      </footer>
+    </section>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        deleteDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyD8m4VHxpOsoKKCN3zNv8Bx4fwUl_490qs",
+        authDomain: "algorhythm-2.firebaseapp.com",
+        projectId: "algorhythm-2",
+        storageBucket: "algorhythm-2.firebasestorage.app",
+        messagingSenderId: "810931058698",
+        appId: "1:810931058698:web:06d0f9dd3055319cff07f3",
+        measurementId: "G-YE5ESZ401Z",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      let currentUser = null;
+
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (currentGenre) {
+          loadGenreContent();
+        }
+      });
+
+      window.AlgoRhythmPool = window.AlgoRhythmPool || {
+        queryPools: {},
+      };
+
+      let currentGenre = "";
+      let currentAudio = null;
+
+      function shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function buildKey(item, type = "generic") {
+        if (type === "artist") {
+          return (item?.name || "unknown-artist")
+            .toString()
+            .trim()
+            .toLowerCase();
+        }
+
+        if (type === "album") {
+          return `${item?.name || "unknown-album"}::${item?.artist || ""}`
+            .trim()
+            .toLowerCase();
+        }
+
+        if (type === "song") {
+          return `${item?.name || "unknown-song"}::${item?.artist || ""}`
+            .trim()
+            .toLowerCase();
+        }
+
+        return JSON.stringify(item).toLowerCase();
+      }
+
+      function getQueryUniqueItems(
+        arr,
+        count,
+        type = "generic",
+        queryKey = "default",
+      ) {
+        if (!window.AlgoRhythmPool.queryPools[queryKey]) {
+          window.AlgoRhythmPool.queryPools[queryKey] = new Set();
+        }
+
+        const pool = window.AlgoRhythmPool.queryPools[queryKey];
+        const unique = [];
+        const localSeen = new Set();
+
+        arr.forEach((item) => {
+          const key = buildKey(item, type);
+          if (!localSeen.has(key)) {
+            localSeen.add(key);
+            unique.push(item);
+          }
+        });
+
+        let available = unique.filter(
+          (item) => !pool.has(buildKey(item, type)),
+        );
+
+        if (available.length === 0) {
+          pool.clear();
+          available = [...unique];
+        }
+
+        const picked = shuffleArray(available).slice(0, count);
+        picked.forEach((item) => pool.add(buildKey(item, type)));
+
+        return picked;
+      }
+
+      function formatGenreName(genre) {
+        if (!genre) return "None selected";
+        if (genre === "rnb") return "R&B";
+        if (genre === "hip-hop") return "Hip-Hop";
+        if (genre === "kpop") return "K-Pop";
+        return genre.charAt(0).toUpperCase() + genre.slice(1);
+      }
+
+      function updateGenreButtons() {
+        const buttons = document.querySelectorAll(".foryou-genre-btn");
+
+        buttons.forEach((button) => {
+          const buttonGenre = button.getAttribute("data-genre");
+          if (buttonGenre === currentGenre) {
+            button.classList.add("active");
+          } else {
+            button.classList.remove("active");
+          }
+        });
+
+        document.getElementById("currentGenreLabel").textContent =
+          formatGenreName(currentGenre);
+      }
+
+      function makeAppleSpotifyLinks(appleUrl, spotifyUrl, labelBase) {
+        return `
+      <div class="foryou-pill-links">
+        <a href="${appleUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open ${labelBase} in Apple Music">
+          <img src="applemusic.svg" alt="Apple Music" class="music-logo small-logo" title="Open in Apple Music"/>
+        </a>
+        <a href="${spotifyUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open ${labelBase} in Spotify">
+          <img src="spotify.svg" alt="Spotify" class="music-logo small-logo" title="Open in Spotify"/>
+        </a>
+      </div>
+    `;
+      }
+
+      function makeFavoriteId(name, artist = "") {
+        return `${name}::${artist}`.trim().toLowerCase().replace(/\s+/g, "-");
+      }
+
+      async function isSongFavorited(song) {
+        if (!currentUser) return false;
+
+        const songId = makeFavoriteId(song.name, song.artist);
+        const ref = doc(db, "users", currentUser.uid, "favoriteSongs", songId);
+        const snap = await getDoc(ref);
+        return snap.exists();
+      }
+
+      async function isArtistFavorited(artist) {
+        if (!currentUser) return false;
+
+        const artistId = makeFavoriteId(artist.name);
+        const ref = doc(
+          db,
+          "users",
+          currentUser.uid,
+          "favoriteArtists",
+          artistId,
+        );
+        const snap = await getDoc(ref);
+        return snap.exists();
+      }
+
+      async function toggleSongFavorite(song, buttonEl) {
+        if (!currentUser) {
+          alert("Please log in to save favorites.");
+          return;
+        }
+
+        const songId = makeFavoriteId(song.name, song.artist);
+        const ref = doc(db, "users", currentUser.uid, "favoriteSongs", songId);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          await deleteDoc(ref);
+          buttonEl.textContent = "♡";
+          buttonEl.classList.remove("favorited");
+          buttonEl.setAttribute("aria-label", "Add to favorites");
+          buttonEl.setAttribute("title", "Add to favorites");
+        } else {
+          await setDoc(ref, {
+            name: song.name,
+            artist: song.artist,
+            apple_url: song.apple_url || null,
+            spotify_url: song.spotify_url || null,
+            preview_url: song.preview_url || null,
+            artwork_url: song.artwork_url || null,
+            genre: currentGenre || null,
+            savedAt: new Date().toISOString(),
+          });
+          buttonEl.textContent = "♥";
+          buttonEl.classList.add("favorited");
+          buttonEl.setAttribute("aria-label", "Remove from favorites");
+          buttonEl.setAttribute("title", "Remove from favorites");
+        }
+      }
+
+      async function toggleArtistFavorite(artist, buttonEl) {
+        if (!currentUser) {
+          alert("Please log in to save favorites.");
+          return;
+        }
+
+        const artistId = makeFavoriteId(artist.name);
+        const ref = doc(
+          db,
+          "users",
+          currentUser.uid,
+          "favoriteArtists",
+          artistId,
+        );
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          await deleteDoc(ref);
+          buttonEl.textContent = "♡";
+          buttonEl.classList.remove("favorited");
+          buttonEl.setAttribute("aria-label", "Add to favorites");
+          buttonEl.setAttribute("title", "Add to favorites");
+        } else {
+          await setDoc(ref, {
+            name: artist.name,
+            apple_url: artist.apple_url || null,
+            spotify_url: artist.spotify_url || null,
+            genre: currentGenre || null,
+            savedAt: new Date().toISOString(),
+          });
+          buttonEl.textContent = "♥";
+          buttonEl.classList.add("favorited");
+          buttonEl.setAttribute("aria-label", "Remove from favorites");
+          buttonEl.setAttribute("title", "Remove from favorites");
+        }
+      }
+
+      async function renderArtists(items) {
+        const container = document.getElementById("artists");
+        container.innerHTML = "";
+
+        if (!items || items.length === 0) {
+          container.innerHTML = `<div class="foryou-item">No artists found</div>`;
+          return;
+        }
+
+        for (const artist of items) {
+          const div = document.createElement("div");
+          div.className = "foryou-item foryou-pill-row";
+
+          const saved = currentUser ? await isArtistFavorited(artist) : false;
+
+          div.innerHTML = `
+        <span class="foryou-pill-text">${artist.name}</span>
+        <div class="foryou-pill-actions">
+          <button class="favorite-btn ${saved ? "favorited" : ""}"
+            aria-label="${saved ? "Remove from favorites" : "Add to favorites"}"
+            title="${saved ? "Remove from favorites" : "Add to favorites"}"
+            >${saved ? "♥" : "♡"}
+          </button>
+          ${makeAppleSpotifyLinks(
+            artist.apple_url,
+            artist.spotify_url,
+            artist.name,
+          )}
+        </div>
+      `;
+
+          const favBtn = div.querySelector(".favorite-btn");
+          favBtn.addEventListener("click", () =>
+            toggleArtistFavorite(artist, favBtn),
+          );
+
+          container.appendChild(div);
+        }
+      }
+
+      function renderAlbums(items) {
+        const container = document.getElementById("albums");
+        container.innerHTML = "";
+
+        if (!items || items.length === 0) {
+          container.innerHTML = `<div class="foryou-item">No albums found</div>`;
+          return;
+        }
+
+        items.forEach((album) => {
+          const div = document.createElement("div");
+          div.className = "foryou-item foryou-pill-row";
+          div.innerHTML = `
+        <div class="foryou-pill-stack">
+          <span class="foryou-pill-text">${album.name}</span>
+          <small class="foryou-pill-subtext">${album.artist}</small>
+        </div>
+        ${makeAppleSpotifyLinks(
+          album.apple_url,
+          album.spotify_url,
+          `${album.name} by ${album.artist}`,
+        )}
+      `;
+          container.appendChild(div);
+        });
+      }
+
+      async function renderSongs(items) {
+        const container = document.getElementById("songs");
+        container.innerHTML = "";
+
+        if (!items || items.length === 0) {
+          container.innerHTML = `<div class="foryou-item">No songs found</div>`;
+          return;
+        }
+
+        for (const song of items) {
+          const div = document.createElement("div");
+          div.className = "foryou-item foryou-song-pill";
+
+          const saved = currentUser ? await isSongFavorited(song) : false;
+
+          const previewHtml = song.preview_url
+            ? `
+          <div class="foryou-song-preview inside-pill">
+            <audio controls preload="none">
+              <source src="${song.preview_url}" type="audio/mpeg" />
+              Your browser does not support audio playback.
+            </audio>
+          </div>
+        `
+            : `<div class="foryou-no-preview inside-pill">No preview available for this song.</div>`;
+
+          div.innerHTML = `
+        <div class="foryou-pill-row">
+          <div class="foryou-pill-stack">
+            <span class="foryou-pill-text">${song.name}</span>
+            <small class="foryou-pill-subtext">${song.artist}</small>
+          </div>
+          <div class="foryou-pill-actions">
+            <button class="favorite-btn ${saved ? "favorited" : ""}"
+              aria-label="${saved ? "Remove from favorites" : "Add to favorites"}"
+              title="${saved ? "Remove from favorites" : "Add to favorites"}"
+              >${saved ? "♥" : "♡"}
+            </button>
+            ${makeAppleSpotifyLinks(
+              song.apple_url,
+              song.spotify_url,
+              `${song.name} by ${song.artist}`,
+            )}
+          </div>
+        </div>
+        ${previewHtml}
+      `;
+
+          const favBtn = div.querySelector(".favorite-btn");
+          favBtn.addEventListener("click", () =>
+            toggleSongFavorite(song, favBtn),
+          );
+
+          container.appendChild(div);
+        }
+      }
+
+      async function loadGenreContent() {
+        if (!currentGenre) {
+          document.getElementById("artists").innerHTML =
+            `<div class="foryou-item">Pick a genre to see artists</div>`;
+          document.getElementById("songs").innerHTML =
+            `<div class="foryou-item">Pick a genre to see songs</div>`;
+          document.getElementById("albums").innerHTML =
+            `<div class="foryou-item">Pick a genre to see albums</div>`;
+          return;
+        }
+
+        document.getElementById("artists").innerHTML =
+          `<div class="foryou-item">Loading artists...</div>`;
+        document.getElementById("songs").innerHTML =
+          `<div class="foryou-item">Loading songs...</div>`;
+        document.getElementById("albums").innerHTML =
+          `<div class="foryou-item">Loading albums...</div>`;
+
+        try {
+          const [artistsRes, songsRes, albumsRes] = await Promise.all([
+            fetch(
+              `http://localhost:3000/genre-artists?genre=${encodeURIComponent(currentGenre)}`,
+            ),
+            fetch(
+              `http://localhost:3000/genre-songs?genre=${encodeURIComponent(currentGenre)}`,
+            ),
+            fetch(
+              `http://localhost:3000/genre-albums?genre=${encodeURIComponent(currentGenre)}`,
+            ),
+          ]);
+
+          const artistsData = await artistsRes.json();
+          const songsData = await songsRes.json();
+          const albumsData = await albumsRes.json();
+
+          const randomArtists = getQueryUniqueItems(
+            artistsData.artists || [],
+            5,
+            "artist",
+            `foryou-${currentGenre}-artists`,
+          );
+
+          const randomSongs = getQueryUniqueItems(
+            songsData.songs || [],
+            5,
+            "song",
+            `foryou-${currentGenre}-songs`,
+          );
+
+          const randomAlbums = getQueryUniqueItems(
+            albumsData.albums || [],
+            5,
+            "album",
+            `foryou-${currentGenre}-albums`,
+          );
+
+          await renderArtists(randomArtists);
+          await renderSongs(randomSongs);
+          renderAlbums(randomAlbums);
+        } catch (error) {
+          console.error("For You fetch error:", error);
+          document.getElementById("artists").innerHTML =
+            `<div class="foryou-item">Could not load artists.</div>`;
+          document.getElementById("songs").innerHTML =
+            `<div class="foryou-item">Could not load songs.</div>`;
+          document.getElementById("albums").innerHTML =
+            `<div class="foryou-item">Could not load albums.</div>`;
+        }
+      }
+
+      window.selectGenre = function (genre) {
+        currentGenre = genre;
+        updateGenreButtons();
+        loadGenreContent();
+      };
+
+      updateGenreButtons();
+      loadGenreContent();
+
+      document.addEventListener(
+        "play",
+        (event) => {
+          const target = event.target;
+
+          if (target.tagName === "AUDIO") {
+            if (currentAudio && currentAudio !== target) {
+              currentAudio.pause();
+              currentAudio.currentTime = 0;
+            }
+
+            currentAudio = target;
+          }
+        },
+        true,
+      );
+      let currentPage = window.location.pathname.split("/").pop();
+
+      if (!currentPage) {
+        currentPage = "home.html";
+      }
+
+      document.querySelectorAll("nav a").forEach((link) => {
+        const linkPage = link.getAttribute("href").split("/").pop();
+
+        if (linkPage === currentPage) {
+          link.classList.add("active");
+        }
+      });
+    </script>
+  </body>
+</html>

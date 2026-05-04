@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map</title>
+    <link rel="stylesheet" href="final.css" />
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  </head>
+  <body>
+    <aside>
+      <div>
+        <a href="home.html">
+          <img class="mainlogo" src="transparentlogo.png" alt="Logo" />
+        </a>
+      </div>
+      <nav>
+        <a href="profile.html">Profile</a> <br />
+        <br />
+        <a href="explore.html">Explore</a> <br />
+        <br />
+        <a href="foryou.html">For You</a> <br />
+        <br />
+        <a href="aboutus.html">About Us</a> <br />
+        <br />
+        <a href="map.html">Map</a> <br />
+      </nav>
+    </aside>
+
+    <main>
+      <h1>Music Map</h1>
+
+      <p class="map-intro">
+        Search for an artist to see a live similarity map. The searched artist
+        stays in the center, and related artists cluster around it. Click any
+        artist name to recenter the map around that artist.
+      </p>
+
+      <div class="map-toolbar">
+        <label for="artistSearch">Search an artist</label>
+        <input id="artistSearch" type="text" placeholder="Enter an artist" />
+        <button id="searchBtn" type="button">Build Map</button>
+      </div>
+
+      <div class="map-shell">
+        <svg
+          id="map"
+          viewBox="0 0 1100 640"
+          preserveAspectRatio="xMidYMid meet"
+          aria-label="Artist similarity map"
+        ></svg>
+      </div>
+
+      <footer class="site-footer">
+        <div class="footer-main">
+          <span>&copy; Algo-Rhythm 2026</span>
+          <img class="logo" src="transparentlogo.png" alt="Logo" />
+        </div>
+
+        <div class="footer-attribution">
+          <!-- Only include on relevant pages -->
+          <p class="attribution-text">Recommendations powered by Last.fm</p>
+          <p class="attribution-text">Previews provided by Apple Music</p>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      const svg = d3.select("#map");
+      const width = 1100;
+      const height = 640;
+      const input = document.getElementById("artistSearch");
+      const button = document.getElementById("searchBtn");
+
+      let simulation;
+
+      function showMessage(message) {
+        svg.selectAll("*").remove();
+
+        if (simulation) {
+          simulation.stop();
+        }
+
+        const group = svg.append("g");
+
+        group
+          .append("rect")
+          .attr("x", 20)
+          .attr("y", 20)
+          .attr("width", width - 40)
+          .attr("height", height - 40)
+          .attr("rx", 18)
+          .attr("ry", 18)
+          .attr("fill", "transparent")
+          .attr("stroke", "rgba(255,255,255,0.18)")
+          .attr("stroke-width", 1.5);
+
+        group
+          .append("text")
+          .attr("x", width / 2)
+          .attr("y", height / 2)
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "middle")
+          .attr("class", "map-message")
+          .text(message);
+      }
+
+      function normalizeArtistResults(results, centerArtist) {
+        const list = Array.isArray(results) ? results : [];
+        const seen = new Set([centerArtist.trim().toLowerCase()]);
+
+        return list
+          .filter((item) => item && item.name)
+          .filter((item) => {
+            const key = item.name.trim().toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          })
+          .slice(0, 12)
+          .map((item, index) => ({
+            id: item.name,
+            label: item.name,
+            group: "similar",
+            weight: Math.max(0.3, 1 - index * 0.06),
+          }));
+      }
+
+      async function fetchSimilarArtists(artistName) {
+        const res = await fetch(
+          `http://localhost:3000/similar-artists?artist=${encodeURIComponent(
+            artistName,
+          )}`,
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        return data?.similarartists?.artist || [];
+      }
+
+      function renderMap(centerArtist, similarArtists) {
+        svg.selectAll("*").remove();
+
+        if (simulation) {
+          simulation.stop();
+        }
+
+        const defs = svg.append("defs");
+
+        const glow = defs
+          .append("filter")
+          .attr("id", "softGlow")
+          .attr("x", "-50%")
+          .attr("y", "-50%")
+          .attr("width", "200%")
+          .attr("height", "200%");
+
+        glow
+          .append("feGaussianBlur")
+          .attr("stdDeviation", "3.5")
+          .attr("result", "coloredBlur");
+
+        const merge = glow.append("feMerge");
+        merge.append("feMergeNode").attr("in", "coloredBlur");
+        merge.append("feMergeNode").attr("in", "SourceGraphic");
+
+        svg
+          .append("rect")
+          .attr("x", 20)
+          .attr("y", 20)
+          .attr("width", width - 40)
+          .attr("height", height - 40)
+          .attr("rx", 18)
+          .attr("ry", 18)
+          .attr("fill", "transparent")
+          .attr("stroke", "rgba(255,255,255,0.18)")
+          .attr("stroke-width", 1.5);
+
+        const graphLayer = svg.append("g");
+
+        const nodes = [
+          {
+            id: centerArtist,
+            label: centerArtist,
+            group: "center",
+            fx: width / 2,
+            fy: height / 2,
+          },
+          ...similarArtists,
+        ];
+
+        const links = similarArtists.map((artist) => ({
+          source: centerArtist,
+          target: artist.id,
+          strength: artist.weight || 0.6,
+        }));
+
+        const link = graphLayer
+          .append("g")
+          .selectAll("line")
+          .data(links)
+          .join("line")
+          .attr("class", "link-line");
+
+        const node = graphLayer
+          .append("g")
+          .selectAll("g")
+          .data(nodes)
+          .join("g")
+          .attr(
+            "class",
+            (d) =>
+              `map-node ${d.group === "center" ? "center-node" : "similar-node"}`,
+          )
+          .call(
+            d3
+              .drag()
+              .on("start", dragStarted)
+              .on("drag", dragged)
+              .on("end", dragEnded),
+          );
+
+        node
+          .append("circle")
+          .attr(
+            "class",
+            (d) => `node-circle ${d.group === "center" ? "central" : ""}`,
+          )
+          .attr("r", (d) => (d.group === "center" ? 24 : 8))
+          .attr("filter", "url(#softGlow)");
+
+        node
+          .append("text")
+          .attr(
+            "class",
+            (d) => `node-label ${d.group === "center" ? "central" : ""}`,
+          )
+          .attr("x", (d) => (d.group === "center" ? 0 : 16))
+          .attr("y", (d) => (d.group === "center" ? -30 : 4))
+          .attr("text-anchor", (d) =>
+            d.group === "center" ? "middle" : "start",
+          )
+          .text((d) => d.label)
+          .on("click", (event, d) => {
+            event.stopPropagation();
+            if (d.group !== "center") {
+              input.value = d.label;
+              buildMap(d.label);
+            }
+          });
+
+        simulation = d3
+          .forceSimulation(nodes)
+          .force(
+            "link",
+            d3
+              .forceLink(links)
+              .id((d) => d.id)
+              .distance((d) => (d.source.id === centerArtist ? 120 : 150))
+              .strength(0.85),
+          )
+          .force("charge", d3.forceManyBody().strength(-280))
+          .force("center", d3.forceCenter(width / 2, height / 2))
+          .force(
+            "collision",
+            d3.forceCollide().radius((d) => (d.group === "center" ? 85 : 58)),
+          )
+          .on("tick", ticked);
+
+        function ticked() {
+          link
+            .attr("x1", (d) => d.source.x)
+            .attr("y1", (d) => d.source.y)
+            .attr("x2", (d) => d.target.x)
+            .attr("y2", (d) => d.target.y);
+
+          node.attr("transform", (d) => `translate(${d.x},${d.y})`);
+        }
+
+        function dragStarted(event, d) {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+          d.fx = event.x;
+          d.fy = event.y;
+        }
+
+        function dragEnded(event, d) {
+          if (!event.active) simulation.alphaTarget(0);
+          if (d.group !== "center") {
+            d.fx = null;
+            d.fy = null;
+          }
+        }
+      }
+
+      async function buildMap(artistName) {
+        const artist = artistName.trim();
+
+        if (!artist) {
+          showMessage("Search for an artist to build the map.");
+          return;
+        }
+
+        showMessage(`Loading artists similar to ${artist}...`);
+
+        try {
+          const results = await fetchSimilarArtists(artist);
+          const similarArtists = normalizeArtistResults(results, artist);
+
+          if (!similarArtists.length) {
+            showMessage(`No similar artists found for ${artist}.`);
+            return;
+          }
+
+          renderMap(artist, similarArtists);
+        } catch (error) {
+          console.error("Music map error:", error);
+          showMessage("Could not load the music map right now.");
+        }
+      }
+
+      button.addEventListener("click", () => buildMap(input.value));
+
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          buildMap(input.value);
+        }
+      });
+
+      showMessage("Search for an artist to build the map.");
+
+      let currentPage = window.location.pathname.split("/").pop();
+
+      if (!currentPage) {
+        currentPage = "home.html";
+      }
+
+      document.querySelectorAll("nav a").forEach((link) => {
+        const linkPage = link.getAttribute("href").split("/").pop();
+
+        if (linkPage === currentPage) {
+          link.classList.add("active");
+        }
+      });
+    </script>
+  </body>
+</html>
