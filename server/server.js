@@ -14,6 +14,13 @@ app.use(
 );
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.json({
+    status: "Algo-Rhythm backend is running!",
+    message: "Use /search-tracks, /songs, /trending, etc.",
+  });
+});
+
 const appleCache = new Map();
 const appleRateLimitState = {
   blockedUntil: 0,
