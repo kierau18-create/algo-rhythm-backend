@@ -6,7 +6,12 @@ const app = express();
 
 console.log("LASTFM KEY EXISTS:", !!process.env.LASTFM_API_KEY);
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["https://algorhythm-2.web.app", "http://localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  }),
+);
 app.use(express.json());
 
 const appleCache = new Map();
