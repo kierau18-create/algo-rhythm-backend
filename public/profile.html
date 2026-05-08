@@ -279,6 +279,12 @@
               username: (username || "User").toLowerCase(),
               email: email,
             });
+
+            await setDoc(doc(db, "publicUsers", user.uid), {
+              username: username || "User",
+              username_lower: (username || "User").toLowerCase(),
+              uid: user.uid,
+            });
           }
 
           closeModal();
@@ -654,7 +660,7 @@
         }
 
         try {
-          const usersRef = collection(db, "users");
+          const usersRef = collection(db, "publicUsers");
           const snapshot = await getDocs(usersRef);
 
           const currentUid = auth.currentUser.uid;
