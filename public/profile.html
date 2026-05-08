@@ -263,6 +263,25 @@
 
           if (!isLogin) {
             username = document.getElementById("username").value.trim();
+
+            // USERNAME RULES
+            if (username.length < 3 || username.length > 20) {
+              alert("Username must be 3-20 characters.");
+              return;
+            }
+
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+              alert(
+                "Username can only contain letters, numbers, and underscores.",
+              );
+              return;
+            }
+
+            // PASSWORD RULES
+            if (password.length < 8) {
+              alert("Password must be at least 8 characters.");
+              return;
+            }
           }
 
           if (isLogin) {
@@ -275,14 +294,17 @@
             );
             const user = userCredential.user;
 
+            const cleanUsername = (username || "User").trim();
+
             await setDoc(doc(db, "users", user.uid), {
-              username: (username || "User").toLowerCase(),
+              username: cleanUsername,
+              username_lower: cleanUsername.toLowerCase(),
               email: email,
             });
 
             await setDoc(doc(db, "publicUsers", user.uid), {
-              username: username || "User",
-              username_lower: (username || "User").toLowerCase(),
+              username: cleanUsername,
+              username_lower: cleanUsername.toLowerCase(),
               uid: user.uid,
             });
           }
@@ -672,7 +694,7 @@
             if (!data.username) continue;
             if (docSnap.id === currentUid) continue;
 
-            const username = data.username.toLowerCase();
+            const username = data.username_lower || "";
 
             if (!username.includes(searchValue)) continue;
 
@@ -986,6 +1008,16 @@
             email: nextEmail,
           };
         }
+
+        await setDoc(
+          doc(db, "publicUsers", user.uid),
+          {
+            username: data.username || nextUsername,
+            username_lower: (data.username || nextUsername).toLowerCase(),
+            uid: user.uid,
+          },
+          { merge: true },
+        );
 
         return data;
       }
