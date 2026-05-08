@@ -524,17 +524,9 @@
       }
 
       async function followUser(targetUser) {
-        if (!auth.currentUser) {
-          alert("Please log in first.");
-          return;
-        }
+        if (!auth.currentUser) return;
 
         const currentUid = auth.currentUser.uid;
-
-        if (currentUid === targetUser.uid) {
-          alert("You can't follow yourself.");
-          return;
-        }
 
         const requestRef = doc(
           db,
@@ -544,9 +536,9 @@
           currentUid,
         );
 
-        const existingRequest = await getDoc(requestRef);
+        const existing = await getDoc(requestRef);
 
-        if (existingRequest.exists()) {
+        if (existing.exists()) {
           return "Requested";
         }
 
@@ -625,22 +617,19 @@
 
           const btn = row.querySelector(".follow-btn");
           btn.addEventListener("click", async () => {
-            if (btn.classList.contains("requested")) return;
-
-            // immediately update UI (no waiting)
+            btn.disabled = true;
             btn.textContent = "Requested";
             btn.classList.add("requested");
-            btn.disabled = true;
 
             try {
               await followUser(entry.user);
             } catch (err) {
               console.error(err);
 
-              // rollback if failed
+              // rollback if it fails
+              btn.disabled = false;
               btn.textContent = "Follow";
               btn.classList.remove("requested");
-              btn.disabled = false;
             }
           });
 
@@ -649,10 +638,7 @@
       }
 
       async function searchUsers() {
-        if (!auth.currentUser) {
-          console.warn("Auth not ready");
-          return;
-        }
+        if (!auth.currentUser) return;
 
         const searchValue = document
           .getElementById("user-search-input")
@@ -670,6 +656,7 @@
         try {
           const usersRef = collection(db, "users");
           const snapshot = await getDocs(usersRef);
+
           const currentUid = auth.currentUser.uid;
           const matches = [];
 
@@ -679,9 +666,9 @@
             if (!data.username) continue;
             if (docSnap.id === currentUid) continue;
 
-            const requestedSnap = await getDoc(
-              doc(db, "users", docSnap.id, "followRequests", currentUid),
-            );
+            const username = data.username.toLowerCase();
+
+            if (!username.includes(searchValue)) continue;
 
             matches.push({
               user: {
@@ -690,7 +677,7 @@
                 email: data.email || "",
               },
               following: false,
-              requested: requestedSnap.exists(),
+              requested: false, // IMPORTANT: we handle this on click instead
             });
           }
 
