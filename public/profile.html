@@ -627,14 +627,20 @@
           btn.addEventListener("click", async () => {
             if (btn.classList.contains("requested")) return;
 
-            const result = await followUser(entry.user);
+            // immediately update UI (no waiting)
+            btn.textContent = "Requested";
+            btn.classList.add("requested");
+            btn.disabled = true;
 
-            if (result === "Requested") {
-              btn.textContent = "Requested";
-              btn.classList.add("requested");
-              btn.disabled = true;
-              btn.setAttribute("aria-label", "Request sent");
-              btn.setAttribute("title", "Request sent");
+            try {
+              await followUser(entry.user);
+            } catch (err) {
+              console.error(err);
+
+              // rollback if failed
+              btn.textContent = "Follow";
+              btn.classList.remove("requested");
+              btn.disabled = false;
             }
           });
 
@@ -664,29 +670,29 @@
         try {
           const usersRef = collection(db, "users");
           const snapshot = await getDocs(usersRef);
-
           const currentUid = auth.currentUser.uid;
           const matches = [];
 
-          snapshot.forEach((docSnap) => {
+          for (const docSnap of snapshot.docs) {
             const data = docSnap.data();
 
-            if (!data.username) return;
+            if (!data.username) continue;
+            if (docSnap.id === currentUid) continue;
 
-            const username = data.username.toLowerCase();
+            const requestedSnap = await getDoc(
+              doc(db, "users", docSnap.id, "followRequests", currentUid),
+            );
 
-            if (username.includes(searchValue) && docSnap.id !== currentUid) {
-              matches.push({
-                user: {
-                  uid: docSnap.id,
-                  username: data.username,
-                  email: data.email || "",
-                },
-                following: false,
-                requested: false,
-              });
-            }
-          });
+            matches.push({
+              user: {
+                uid: docSnap.id,
+                username: data.username,
+                email: data.email || "",
+              },
+              following: false,
+              requested: requestedSnap.exists(),
+            });
+          }
 
           renderUserSearchResults(matches);
         } catch (error) {
