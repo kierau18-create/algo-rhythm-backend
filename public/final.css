@@ -208,16 +208,6 @@ PROFILE CONTENT
   align-items: start;
 }
 
-.profile-social,
-.profile-favorites {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 1em;
-  margin-top: 0.15em;
-  margin-bottom: 2em;
-  align-items: start;
-}
-
 @media (max-width: 48em) {
   .profile-favorites {
     grid-template-columns: 1fr;
@@ -294,12 +284,6 @@ PROFILE CONTENT
   background: rgba(18, 54, 105, 0.16);
 }
 
-.profile-social,
-.profile-favorites {
-  margin-top: 0.15em;
-  margin-bottom: 2em;
-}
-
 #userContent {
   display: block;
 }
@@ -353,7 +337,18 @@ PROFILE SOCIAL
   display: flex;
   flex-direction: column;
   gap: 1em;
-  margin-bottom: 1.5em;
+  width: 100%;
+  margin-top: 0.15em;
+  margin-bottom: 2em;
+}
+
+.profile-favorites {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1em;
+  margin-top: 0.15em;
+  margin-bottom: 2em;
+  align-items: start;
 }
 
 .social-connections-row {
@@ -361,6 +356,10 @@ PROFILE SOCIAL
   grid-template-columns: 1fr 1fr;
   gap: 1em;
   width: 100%;
+}
+
+.social-column {
+  min-width: 0;
 }
 
 @media (max-width: 48em) {
@@ -399,17 +398,6 @@ PROFILE SOCIAL
   padding: 0.75em 1em;
   border-radius: 0.8em;
   margin: 0;
-}
-
-.social-connections-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1em;
-  width: 100%;
-}
-
-.social-column {
-  min-width: 0;
 }
 
 @media (max-width: 48em) {
