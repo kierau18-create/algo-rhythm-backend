@@ -366,6 +366,7 @@ PROFILE SOCIAL
   border-radius: 1em;
   padding: 0.6em 1em 1em 1em;
   min-width: 0;
+  width: 100%;
   border: 0.1em solid var(--border-subtle);
 }
 
@@ -462,6 +463,48 @@ PROFILE SOCIAL
 #user-search-results {
   margin-top: 1em;
   margin-bottom: 0;
+}
+
+.request-actions {
+  display: flex;
+  gap: 0.5em;
+  flex-shrink: 0;
+}
+
+.accept-btn {
+  background: var(--accent-teal);
+  color: var(--bg-dark);
+  border: none;
+  border-radius: 999em;
+  padding: 0.4em 0.8em;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.decline-btn {
+  background: transparent;
+  border: 0.08em solid var(--text-secondary);
+  color: var(--text-secondary);
+  border-radius: 999em;
+  padding: 0.4em 0.8em;
+  cursor: pointer;
+}
+
+.decline-btn:hover {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.follow-btn.requested {
+  background: rgba(47, 224, 189, 0.18);
+  border: 0.08em solid var(--accent-teal);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.follow-btn:disabled {
+  cursor: not-allowed;
 }
 
 #profileModal .modal-content {

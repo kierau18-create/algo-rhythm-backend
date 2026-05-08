@@ -456,6 +456,35 @@
         });
       }
 
+      function renderRequests(items) {
+        const container = document.getElementById("requests-list");
+        container.innerHTML = "";
+
+        if (!items.length) {
+          container.innerHTML = `<p class="social-empty">No follow requests.</p>`;
+          return;
+        }
+
+        items.forEach((user) => {
+          const row = document.createElement("div");
+          row.className = "user-item";
+
+          row.innerHTML = `
+            <div class="user-text">
+              <div class="user-name">${user.username || "User"}</div>
+              <div class="user-email">${user.email || ""}</div>
+            </div>
+
+            <div class="request-actions">
+              <button class="accept-btn">Accept</button>
+              <button class="decline-btn">Decline</button>
+            </div>
+          `;
+
+          container.appendChild(row);
+        });
+      }
+
       async function loadFavorites(user) {
         try {
           const songsRef = collection(db, "users", user.uid, "favoriteSongs");
@@ -519,7 +548,6 @@
           return;
         }
 
-        // CHECK if already requested or already following
         const requestRef = doc(
           db,
           "users",
@@ -531,13 +559,19 @@
         const existingRequest = await getDoc(requestRef);
 
         if (existingRequest.exists()) {
-          alert("Follow request already sent.");
-          return;
+          return "Requested";
         }
+
+        const currentUserSnap = await getDoc(doc(db, "users", currentUid));
+        const currentUserData = currentUserSnap.exists()
+          ? currentUserSnap.data()
+          : {};
 
         await setDoc(requestRef, {
           uid: currentUid,
-          username: auth.currentUser.email || "User",
+          username: currentUserData.username || "User",
+          email: currentUserData.email || auth.currentUser.email,
+          status: "pending",
           requestedAt: new Date().toISOString(),
         });
 
@@ -578,26 +612,39 @@
               <div class="user-email">${entry.user.email || ""}</div>
             </div>
 
-            <button
-              class="follow-btn ${entry.following ? "following" : ""}"
-              aria-label="${entry.following ? "Unfollow user" : "Follow user"}"
-              title="${entry.following ? "Unfollow user" : "Follow user"}"
+            <button class="follow-btn ${entry.requested ? "requested" : entry.following ? "following" : ""}"
+              ${entry.requested ? "disabled" : ""}
+              aria-label="${
+                entry.following
+                  ? "Unfollow user"
+                  : entry.requested
+                    ? "Request sent"
+                    : "Follow user"
+              }"
+              title="${
+                entry.following
+                  ? "Unfollow user"
+                  : entry.requested
+                    ? "Request sent"
+                    : "Follow user"
+              }"
             >
-              ${entry.following ? "Following" : "Follow"}
+              ${entry.following ? "Following" : entry.requested ? "Requested" : "Follow"}
             </button>
           `;
 
           const btn = row.querySelector(".follow-btn");
           btn.addEventListener("click", async () => {
+            if (btn.classList.contains("requested")) return;
+
             const result = await followUser(entry.user);
 
-            if (result === "requested") {
+            if (result === "Requested") {
               btn.textContent = "Requested";
+              btn.classList.add("requested");
               btn.disabled = true;
-              btn.classList.add("following");
-
-              btn.setAttribute("aria-label", "Follow request sent");
-              btn.setAttribute("title", "Follow request sent");
+              btn.setAttribute("aria-label", "Request sent");
+              btn.setAttribute("title", "Request sent");
             }
           });
 
@@ -635,6 +682,16 @@
               auth.currentUser &&
               docSnap.id !== auth.currentUser.uid
             ) {
+              const requestedSnap = await getDoc(
+                doc(
+                  db,
+                  "users",
+                  docSnap.id,
+                  "followRequests",
+                  auth.currentUser.uid,
+                ),
+              );
+
               matches.push({
                 user: {
                   uid: docSnap.id,
@@ -642,6 +699,7 @@
                   email: data.email || "",
                 },
                 following: await isFollowingUser(docSnap.id),
+                requested: requestedSnap.exists(),
               });
             }
           }
@@ -794,16 +852,16 @@
           row.className = "user-item";
 
           row.innerHTML = `
-      <div class="user-text">
-        <div class="user-name">${req.username}</div>
-        <div class="user-email">wants to follow you</div>
-      </div>
+            <div class="user-text">
+              <div class="user-name">${req.username}</div>
+              <div class="user-email">wants to follow you</div>
+            </div>
 
-      <div class="favorite-actions">
-        <button class="follow-btn">Accept</button>
-        <button class="follow-btn">Reject</button>
-      </div>
-    `;
+            <div class="favorite-actions">
+              <button class="follow-btn">Accept</button>
+              <button class="follow-btn">Reject</button>
+            </div>
+          `;
 
           const [acceptBtn, rejectBtn] = row.querySelectorAll("button");
 
@@ -893,8 +951,10 @@
             : "<p class='social-empty'>No favorite artists</p>";
         } catch (err) {
           console.error(err);
-          songsContainer.innerHTML = "Error loading songs";
-          artistsContainer.innerHTML = "Error loading artists";
+          songsContainer.innerHTML =
+            "<p class='social-empty'>You don't have permission to view this user's favorites.</p>";
+          artistsContainer.innerHTML =
+            "<p class='social-empty'>You don't have permission to view this user's favorites.</p>";
         }
       }
 
@@ -928,8 +988,23 @@
         return data;
       }
 
+      async function canViewUserProfile(targetUid) {
+        if (!auth.currentUser) return false;
+
+        const currentUid = auth.currentUser.uid;
+
+        // check if YOU follow them
+        const followingSnap = await getDoc(
+          doc(db, "users", currentUid, "following", targetUid),
+        );
+
+        return followingSnap.exists();
+      }
+
       window.openProfileModal = async (user) => {
         if (!user?.uid) return;
+
+        const allowed = await canViewUserProfile(user.uid);
 
         const modal = document.getElementById("profileModal");
         const name = document.getElementById("profileModalName");
