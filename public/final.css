@@ -708,6 +708,12 @@ RESPONSIVE
     margin-left: 0;
     width: 100%;
   }
+
+  @media (max-width: 48em) {
+    .map-toolbar button {
+      width: 100%;
+    }
+  }
 }
 
 audio,
@@ -1075,11 +1081,19 @@ body.foryou-page {
   }
 }
 
+.foryou-song-preview,
+.foryou-no-preview {
+  margin-top: 0.6em;
+}
+
 /* Favorite buttons */
+
 .foryou-pill-actions {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.45em;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .favorite-btn {
@@ -1249,8 +1263,8 @@ body.foryou-page {
 
 .foryou-pill-row {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
+  justify-content: space-between;
   gap: 1em;
   width: 100%;
 }
@@ -1258,10 +1272,9 @@ body.foryou-page {
 .foryou-pill-stack {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  min-width: 0;
   flex: 1;
+  min-width: 0;
+  text-align: left;
 }
 
 .foryou-pill-text {
@@ -1435,8 +1448,11 @@ MUSIC MAP
 }
 
 #searchBtn {
-  margin-top: 1.2em;
-  margin-left: 0;
+  max-width: 100%;
+  width: 100%;
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+  box-sizing: border-box;
 }
 
 .node-circle {
