@@ -27,6 +27,16 @@ COLOR SYSTEM
 GLOBAL
 ======================= */
 
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
@@ -534,7 +544,9 @@ BROWSE BOX
 }
 
 .browse-row input {
-  width: 20em;
+  width: 100%;
+  max-width: 20em;
+  min-width: 0;
   border: none;
   border-bottom: 0.1em solid var(--accent-teal);
   background: transparent;
@@ -658,19 +670,51 @@ RESPONSIVE
     flex-direction: column;
   }
 
-  aside {
-    width: 100%;
-    margin: 0;
+  aside,
+  .foryou-sidebar {
+    width: calc(100% - 1.5em);
+    margin: 0.75em auto;
   }
 
   .home-grid {
     flex-direction: column;
+    gap: 1.25em;
   }
 
   .left-column,
   .right-column {
     width: 100%;
   }
+
+  section {
+    padding-left: 0.75em;
+    padding-right: 0.75em;
+  }
+}
+
+@media (max-width: 48em) {
+  .browse-row,
+  .map-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .browse-row label,
+  .map-toolbar label {
+    width: 100%;
+  }
+
+  #searchBtn {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+audio,
+img,
+svg {
+  max-width: 100%;
+  height: auto;
 }
 
 /* =======================
@@ -711,6 +755,16 @@ EXPLORE PAGE
 .explore-card:hover {
   transform: translateY(-0.3em);
   border-color: var(--accent-teal);
+}
+
+.explore-card,
+.song-card,
+.foryou-card,
+.about-feature-card,
+.social-panel,
+.favorites-block {
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 /* TEXT */
@@ -1007,6 +1061,18 @@ body.foryou-page {
 .foryou-genre-btn.active {
   background: linear-gradient(90deg, #2fe0bd, #1c4fd7);
   border: 2px solid white;
+}
+
+@media (max-width: 36em) {
+  .foryou-pill-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .foryou-pill-links {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 /* Favorite buttons */
@@ -1340,7 +1406,9 @@ MUSIC MAP
 ======================= */
 
 .map-toolbar input {
-  width: 20em;
+  width: 100%;
+  max-width: 20em;
+  min-width: 0;
   border: none;
   border-bottom: 0.1em solid var(--accent-teal);
   background: transparent;
