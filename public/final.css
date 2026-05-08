@@ -706,7 +706,6 @@ RESPONSIVE
 
   #searchBtn {
     margin-left: 0;
-    padding: 0.2em;
     width: 100%;
   }
 }
@@ -1433,7 +1432,7 @@ MUSIC MAP
 }
 
 #searchBtn {
-  margin-left: 1em;
+  margin: 1em;
 }
 
 .node-circle {
