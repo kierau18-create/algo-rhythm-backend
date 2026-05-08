@@ -345,9 +345,10 @@ PROFILE SOCIAL
 
 .social-connections-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1em;
   width: 100%;
+  align-items: start;
 }
 
 .social-column {
