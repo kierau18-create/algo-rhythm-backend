@@ -706,6 +706,7 @@ RESPONSIVE
 
   #searchBtn {
     margin-left: 0;
+    padding: 0.2em;
     width: 100%;
   }
 }
@@ -1066,7 +1067,7 @@ body.foryou-page {
 @media (max-width: 36em) {
   .foryou-pill-row {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .foryou-pill-links {
