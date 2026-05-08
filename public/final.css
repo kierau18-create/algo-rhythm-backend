@@ -200,20 +200,6 @@ PROFILE CONTENT
   border-radius: 0.5em;
 }
 
-.profile-favorites {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1em;
-  margin-bottom: 1.5em;
-  align-items: start;
-}
-
-@media (max-width: 48em) {
-  .profile-favorites {
-    grid-template-columns: 1fr;
-  }
-}
-
 .favorites-block {
   background: rgba(255, 255, 255, 0.06);
   border-radius: 1em;
@@ -334,8 +320,8 @@ PROFILE SOCIAL
 ======================= */
 
 .profile-social {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1em;
   width: 100%;
   margin-top: 0.15em;
@@ -349,6 +335,12 @@ PROFILE SOCIAL
   margin-top: 0.15em;
   margin-bottom: 2em;
   align-items: start;
+}
+
+@media (max-width: 48em) {
+  .profile-favorites {
+    grid-template-columns: 1fr;
+  }
 }
 
 .social-connections-row {
