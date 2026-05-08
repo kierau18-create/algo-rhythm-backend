@@ -532,10 +532,10 @@ BROWSE BOX
 }
 
 .browse-row {
-  margin-bottom: 1.5em;
   display: flex;
   align-items: center;
   gap: 1.5em;
+  margin-bottom: 1.5em;
 }
 
 .browse-row label {
@@ -857,13 +857,6 @@ audio {
 
 .explore-card audio {
   margin-top: 0.5em;
-}
-
-.browse-row {
-  display: flex;
-  align-items: center;
-  gap: 1em;
-  flex-wrap: wrap;
 }
 
 .modal {
