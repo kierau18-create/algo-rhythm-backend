@@ -1065,13 +1065,13 @@ body.foryou-page {
 
 @media (max-width: 36em) {
   .foryou-pill-row {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    align-items: flex-start;
   }
 
   .foryou-pill-links {
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    justify-content: flex-end;
   }
 }
 
@@ -1250,14 +1250,16 @@ body.foryou-page {
 .foryou-pill-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 0.8em;
+  align-items: flex-start;
+  gap: 1em;
   width: 100%;
 }
 
 .foryou-pill-stack {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
   min-width: 0;
   flex: 1;
 }
@@ -1278,6 +1280,7 @@ body.foryou-page {
 .foryou-pill-links {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.55em;
   flex-shrink: 0;
 }
@@ -1290,7 +1293,7 @@ body.foryou-page {
 .foryou-song-item {
   display: flex;
   flex-direction: column;
-  gap: 0.55em;
+  gap: 0.75em;
   width: 100%;
 }
 
@@ -1432,7 +1435,8 @@ MUSIC MAP
 }
 
 #searchBtn {
-  margin: 1em;
+  margin-top: 1.2em;
+  margin-left: 0;
 }
 
 .node-circle {
