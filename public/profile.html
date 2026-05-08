@@ -77,6 +77,13 @@
                 </div>
               </div>
             </div>
+            <div class="social-panel">
+              <h4 class="profile">Follow Requests</h4>
+
+              <div id="requests-list" class="social-list">
+                <p class="social-empty">No requests yet.</p>
+              </div>
+            </div>
           </div>
 
           <h3 class="profile">Favorites</h3>
@@ -511,35 +518,29 @@
           return;
         }
 
-        const currentUserSnap = await getDoc(doc(db, "users", currentUid));
-        const currentUserData = currentUserSnap.exists()
-          ? currentUserSnap.data()
-          : {};
-
-        await setDoc(
-          doc(db, "users", currentUid, "following", targetUser.uid),
-          {
-            uid: targetUser.uid,
-            username: targetUser.username || "User",
-            email: targetUser.email || "",
-            followedAt: new Date().toISOString(),
-          },
+        // CHECK if already requested or already following
+        const requestRef = doc(
+          db,
+          "users",
+          targetUser.uid,
+          "followRequests",
+          currentUid,
         );
 
-        await setDoc(
-          doc(db, "users", targetUser.uid, "followers", currentUid),
-          {
-            uid: currentUid,
-            username:
-              currentUserData.username ||
-              auth.currentUser.displayName ||
-              "User",
-            email: auth.currentUser.email || "",
-            followedAt: new Date().toISOString(),
-          },
-        );
+        const existingRequest = await getDoc(requestRef);
 
-        await loadFollowLists();
+        if (existingRequest.exists()) {
+          alert("Follow request already sent.");
+          return;
+        }
+
+        await setDoc(requestRef, {
+          uid: currentUid,
+          username: auth.currentUser.email || "User",
+          requestedAt: new Date().toISOString(),
+        });
+
+        return "Requested";
       }
 
       async function unfollowUser(targetUser) {
@@ -587,18 +588,15 @@
 
           const btn = row.querySelector(".follow-btn");
           btn.addEventListener("click", async () => {
-            if (await isFollowingUser(entry.user.uid)) {
-              await unfollowUser(entry.user);
-              btn.textContent = "Follow";
-              btn.classList.remove("following");
-              btn.setAttribute("aria-label", "Follow user");
-              btn.setAttribute("title", "Follow user");
-            } else {
-              await followUser(entry.user);
-              btn.textContent = "Following";
+            const result = await followUser(entry.user);
+
+            if (result === "requested") {
+              btn.textContent = "Requested";
+              btn.disabled = true;
               btn.classList.add("following");
-              btn.setAttribute("aria-label", "Unfollow user");
-              btn.setAttribute("title", "Unfollow user");
+
+              btn.setAttribute("aria-label", "Follow request sent");
+              btn.setAttribute("title", "Follow request sent");
             }
           });
 
@@ -768,6 +766,86 @@
         }
       }
 
+      async function loadFollowRequests() {
+        if (!auth.currentUser) return;
+
+        const container = document.getElementById("requests-list");
+        container.innerHTML = `<p class="social-empty">Loading...</p>`;
+
+        const snap = await getDocs(
+          collection(db, "users", auth.currentUser.uid, "followRequests"),
+        );
+
+        const requests = snap.docs.map((d) => ({
+          uid: d.id,
+          ...d.data(),
+        }));
+
+        container.innerHTML = "";
+
+        if (!requests.length) {
+          container.innerHTML = `<p class="social-empty">No requests yet.</p>`;
+          return;
+        }
+
+        requests.forEach((req) => {
+          const row = document.createElement("div");
+          row.className = "user-item";
+
+          row.innerHTML = `
+      <div class="user-text">
+        <div class="user-name">${req.username}</div>
+        <div class="user-email">wants to follow you</div>
+      </div>
+
+      <div class="favorite-actions">
+        <button class="follow-btn">Accept</button>
+        <button class="follow-btn">Reject</button>
+      </div>
+    `;
+
+          const [acceptBtn, rejectBtn] = row.querySelectorAll("button");
+
+          acceptBtn.onclick = async () => {
+            await acceptFollow(req.uid, req);
+          };
+
+          rejectBtn.onclick = async () => {
+            await deleteDoc(
+              doc(db, "users", auth.currentUser.uid, "followRequests", req.uid),
+            );
+            loadFollowRequests();
+          };
+
+          container.appendChild(row);
+        });
+      }
+
+      async function acceptFollow(requesterUid, reqData) {
+        const currentUid = auth.currentUser.uid;
+
+        // add follower
+        await setDoc(
+          doc(db, "users", currentUid, "followers", requesterUid),
+          reqData,
+        );
+
+        // add following for requester
+        await setDoc(doc(db, "users", requesterUid, "following", currentUid), {
+          uid: currentUid,
+          username: "User",
+          acceptedAt: new Date().toISOString(),
+        });
+
+        // remove request
+        await deleteDoc(
+          doc(db, "users", currentUid, "followRequests", requesterUid),
+        );
+
+        loadFollowRequests();
+        loadFollowLists();
+      }
+
       async function loadUserFavorites(uid) {
         const songsContainer = document.getElementById("modalFavoriteSongs");
         const artistsContainer = document.getElementById(
@@ -913,7 +991,11 @@
           console.error("Firestore user fetch error:", error);
         }
 
-        await Promise.all([loadFavorites(user), loadFollowLists()]);
+        await Promise.all([
+          loadFavorites(user),
+          loadFollowLists(),
+          loadFollowRequests(),
+        ]);
       }
 
       document.addEventListener("DOMContentLoaded", () => {
