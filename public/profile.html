@@ -276,7 +276,7 @@
             const user = userCredential.user;
 
             await setDoc(doc(db, "users", user.uid), {
-              username: username || "User",
+              username: (username || "User").toLowerCase(),
               email: email,
             });
           }
@@ -596,7 +596,9 @@
 
           row.innerHTML = `
             <div class="user-text">
-              <div class="user-name">${entry.user.username}</div>
+              <div class="user-name">
+                ${entry.user.username.charAt(0).toUpperCase() + entry.user.username.slice(1)}
+              </div>
               <div class="user-email">${entry.user.email || ""}</div>
             </div>
 
@@ -664,6 +666,11 @@
         try {
           const usersRef = collection(db, "users");
 
+          const searchValue = document
+            .getElementById("user-search-input")
+            .value.trim()
+            .toLowerCase();
+
           const q = query(
             usersRef,
             orderBy("username"),
@@ -681,6 +688,8 @@
             if (docSnap.id === currentUid) continue;
 
             const data = docSnap.data();
+
+            if (!data.username) continue;
 
             matches.push({
               user: {
