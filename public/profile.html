@@ -137,6 +137,21 @@
         </div>
       </div>
 
+      <div id="profileModal" class="modal hidden">
+        <div class="modal-content">
+          <h2 id="profileModalName">User Profile</h2>
+
+          <h3 class="profile">Favorite Songs</h3>
+          <div id="modalFavoriteSongs"></div>
+
+          <h3 class="profile">Favorite Artists</h3>
+          <div id="modalFavoriteArtists"></div>
+
+          <br />
+          <button onclick="closeProfileModal()">Close</button>
+        </div>
+      </div>
+
       <footer class="site-footer">
         <div class="footer-main">
           <span>&copy; Algo-Rhythm 2026</span>
@@ -651,6 +666,14 @@
         items.forEach((user) => {
           const row = document.createElement("div");
           row.className = "user-item";
+          row.style.cursor = "pointer";
+
+          row.addEventListener("click", (e) => {
+            // prevents clicking the follow button from opening modal
+            if (e.target.classList.contains("follow-btn")) return;
+
+            openProfileModal(user);
+          });
 
           row.innerHTML = `
             <div class="user-text">
@@ -692,6 +715,11 @@
         items.forEach((user) => {
           const row = document.createElement("div");
           row.className = "user-item";
+          row.style.cursor = "pointer";
+
+          row.addEventListener("click", () => {
+            openProfileModal(user);
+          });
 
           row.innerHTML = `
             <div class="user-text">
@@ -740,6 +768,57 @@
         }
       }
 
+      async function loadUserFavorites(uid) {
+        const songsContainer = document.getElementById("modalFavoriteSongs");
+        const artistsContainer = document.getElementById(
+          "modalFavoriteArtists",
+        );
+
+        songsContainer.innerHTML = "Loading...";
+        artistsContainer.innerHTML = "Loading...";
+
+        try {
+          const songsSnap = await getDocs(
+            collection(db, "users", uid, "favoriteSongs"),
+          );
+
+          const artistsSnap = await getDocs(
+            collection(db, "users", uid, "favoriteArtists"),
+          );
+
+          const songs = songsSnap.docs.map((d) => d.data());
+          const artists = artistsSnap.docs.map((d) => d.data());
+
+          songsContainer.innerHTML = songs.length
+            ? songs
+                .map(
+                  (s) => `
+                    <div class="list">
+                      <strong>${s.name}</strong> — ${s.artist}
+                    </div>
+                  `,
+                )
+                .join("")
+            : "<p class='social-empty'>No favorite songs</p>";
+
+          artistsContainer.innerHTML = artists.length
+            ? artists
+                .map(
+                  (a) => `
+                  <div class="list">
+                    <strong>${a.name}</strong>
+                  </div>
+                `,
+                )
+                .join("")
+            : "<p class='social-empty'>No favorite artists</p>";
+        } catch (err) {
+          console.error(err);
+          songsContainer.innerHTML = "Error loading songs";
+          artistsContainer.innerHTML = "Error loading artists";
+        }
+      }
+
       async function ensureUserProfileFields(user) {
         if (!user) return null;
 
@@ -769,6 +848,22 @@
 
         return data;
       }
+
+      window.openProfileModal = async (user) => {
+        if (!user?.uid) return;
+
+        const modal = document.getElementById("profileModal");
+        const name = document.getElementById("profileModalName");
+
+        modal.classList.remove("hidden");
+        name.textContent = user.username || "User";
+
+        await loadUserFavorites(user.uid);
+      };
+
+      window.closeProfileModal = () => {
+        document.getElementById("profileModal").classList.add("hidden");
+      };
 
       async function updateUI(user) {
         const usernameDisplay = document.getElementById("usernameDisplay");
