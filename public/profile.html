@@ -194,6 +194,8 @@
         query,
         orderBy,
         limit,
+        startAt,
+        endAt,
       } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -485,13 +487,13 @@
         });
       }
 
-      async function loadFavorites(user) {
+      async function loadFavorites(userUid) {
         try {
-          const songsRef = collection(db, "users", user.uid, "favoriteSongs");
+          const songsRef = collection(db, "users", userUid, "favoriteSongs");
           const artistsRef = collection(
             db,
             "users",
-            user.uid,
+            userUid,
             "favoriteArtists",
           );
 
@@ -519,20 +521,6 @@
           document.getElementById("favoriteArtistsList").innerHTML =
             `<p class="list">Could not load favorite artists.</p>`;
         }
-      }
-
-      async function isFollowingUser(targetUid) {
-        if (!auth.currentUser) return false;
-
-        const followRef = doc(
-          db,
-          "users",
-          auth.currentUser.uid,
-          "following",
-          targetUid,
-        );
-        const snap = await getDoc(followRef);
-        return snap.exists();
       }
 
       async function followUser(targetUser) {
@@ -653,6 +641,11 @@
       }
 
       async function searchUsers() {
+        if (!auth.currentUser) {
+          console.warn("Auth not ready");
+          return;
+        }
+
         const searchValue = document
           .getElementById("user-search-input")
           .value.trim()
@@ -661,6 +654,8 @@
         const resultsContainer = document.getElementById("user-search-results");
         resultsContainer.innerHTML = "";
 
+        if (!auth.currentUser?.uid) return;
+
         if (!searchValue) {
           resultsContainer.innerHTML = `<p class="social-empty">Enter a username to search.</p>`;
           return;
@@ -668,46 +663,40 @@
 
         try {
           const usersRef = collection(db, "users");
-          const q = query(usersRef, orderBy("username"), limit(25));
+
+          const q = query(
+            usersRef,
+            orderBy("username"),
+            startAt(searchValue),
+            endAt(searchValue + "\uf8ff"),
+            limit(25),
+          );
+
           const snapshot = await getDocs(q);
 
+          const currentUid = auth.currentUser.uid;
           const matches = [];
 
           for (const docSnap of snapshot.docs) {
+            if (docSnap.id === currentUid) continue;
+
             const data = docSnap.data();
-            const username = (data.username || "").toLowerCase();
 
-            if (
-              username.includes(searchValue) &&
-              auth.currentUser &&
-              docSnap.id !== auth.currentUser.uid
-            ) {
-              const requestedSnap = await getDoc(
-                doc(
-                  db,
-                  "users",
-                  docSnap.id,
-                  "followRequests",
-                  auth.currentUser.uid,
-                ),
-              );
-
-              matches.push({
-                user: {
-                  uid: docSnap.id,
-                  username: data.username || "User",
-                  email: data.email || "",
-                },
-                following: await isFollowingUser(docSnap.id),
-                requested: requestedSnap.exists(),
-              });
-            }
+            matches.push({
+              user: {
+                uid: docSnap.id,
+                username: data.username || "User",
+                email: data.email || "",
+              },
+              following: false,
+              requested: false,
+            });
           }
 
           renderUserSearchResults(matches);
         } catch (error) {
           console.error("User search error:", error);
-          resultsContainer.innerHTML = `<p class="social-empty">Something went wrong.</p>`;
+          resultsContainer.innerHTML = `<p class="social-empty">Search failed. Check index in Firebase console.</p>`;
         }
       }
 
@@ -758,6 +747,25 @@
 
           container.appendChild(row);
         });
+      }
+
+      async function preloadSocialState() {
+        if (!auth.currentUser) return;
+
+        const uid = auth.currentUser.uid;
+
+        const followingSnap = await getDocs(
+          collection(db, "users", uid, "following"),
+        );
+
+        const requestsSnap = await getDocs(
+          collection(db, "users", uid, "followRequests"),
+        );
+
+        const followingSet = new Set(followingSnap.docs.map((d) => d.id));
+        const requestSet = new Set(requestsSnap.docs.map((d) => d.id));
+
+        return { followingSet, requestSet };
       }
 
       function renderFollowers(items) {
@@ -1068,7 +1076,7 @@
         }
 
         await Promise.all([
-          loadFavorites(user),
+          loadFavorites(user.uid),
           loadFollowLists(),
           loadFollowRequests(),
         ]);
