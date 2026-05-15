@@ -35,6 +35,8 @@ html,
 body {
   overflow-x: hidden;
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -738,8 +740,9 @@ RESPONSIVE
   }
 
   section {
-    padding-left: 0.75em;
-    padding-right: 0.75em;
+    padding: 0 0.75em;
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 
@@ -1560,118 +1563,7 @@ MOBILE BUTTON & NAV OVERRRIDES
 ======================= */
 
 @media (max-width: 48em) {
-  button,
-  .follow-btn,
-  .accept-btn,
-  .decline-btn,
-  .option-btn,
-  .close-btn {
-    display: inline-flex;
-    width: auto !important;
-    max-width: 100%;
-    align-self: center;
-  }
-}
-
-@media (max-width: 48em) {
-  aside,
-  .foryou-sidebar {
-    width: 92%;
-    max-width: 30em;
-    margin: 1em auto;
-  }
-
-  nav,
-  .foryou-nav {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.75em;
-  }
-
-  nav a,
-  .foryou-nav a {
-    padding: 0.5em 0.8em;
-  }
-}
-
-@media (max-width: 48em) {
-  /* STOP stretching children to full width */
-  .user-item,
-  .favorite-item,
-  .foryou-pill-row,
-  .list,
-  .favorite-actions,
-  .request-actions,
-  .foryou-pill-actions {
-    align-items: center !important;
-  }
-
-  /* Force flex containers not to stretch children */
-  .user-item,
-  .favorite-item,
-  .list {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 48em) {
-  .map-toolbar {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.75em;
-  }
-
-  #searchBtn {
-    width: auto !important;
-  }
-}
-
-@media (max-width: 48em) {
-  aside,
-  .foryou-sidebar {
-    width: 92%;
-    max-width: 28em;
-    margin: 1em auto;
-    border-radius: 0.8em;
-  }
-
-  nav,
-  .foryou-nav {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.75em;
-  }
-
-  nav a,
-  .foryou-nav a {
-    display: inline-block;
-    padding: 0.5em 0.9em;
-  }
-}
-
-@media (max-width: 48em) {
-  /* All buttons behave the same */
-  button,
-  .follow-btn,
-  .accept-btn,
-  .decline-btn,
-  .option-btn,
-  .close-btn {
-    display: inline-flex;
-    width: fit-content !important;
-    max-width: 100%;
-    padding: 0.6em 1em;
-    margin: 0.25em;
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* Any container holding buttons */
+  /* CENTER ALL BUTTON ROWS */
   .request-actions,
   .favorite-actions,
   .foryou-pill-actions,
@@ -1682,28 +1574,59 @@ MOBILE BUTTON & NAV OVERRRIDES
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 0.5em;
+    gap: 0.6em;
   }
 
-  /* Prevent weird stretching from flex parents */
-  .user-item,
-  .favorite-item,
-  .foryou-pill-row,
-  .list {
-    align-items: center !important;
+  /* BUTTONS SHOULD SIZE TO CONTENT */
+  button,
+  .follow-btn,
+  .accept-btn,
+  .decline-btn,
+  .option-btn,
+  .close-btn {
+    width: fit-content;
+    max-width: 100%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* MAP SPECIFIC FIX */
+  .map-toolbar button {
+    width: fit-content;
+    margin: 0;
+  }
+
+  /* NAV CONSISTENT WIDTH CONTAINER */
+  nav,
+  .foryou-nav {
+    width: 92%;
+    max-width: 32em;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75em;
+  }
+
+  nav a,
+  .foryou-nav a {
+    display: inline-flex;
+    padding: 0.5em 0.9em;
+  }
+
+  /* SIDEBARS CONSISTENT WIDTH */
+  aside,
+  .foryou-sidebar {
+    width: 92%;
+    max-width: 32em;
+    margin: 1em auto;
   }
 }
 
 @media (max-width: 48em) {
-  .map-toolbar {
-    display: flex;
+  body {
     flex-direction: column;
     align-items: center;
-    gap: 0.75em;
-  }
-
-  .map-toolbar input {
-    width: 100%;
-    max-width: 20em;
   }
 }
