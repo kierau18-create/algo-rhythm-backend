@@ -754,12 +754,6 @@ RESPONSIVE
   .map-toolbar label {
     width: 100%;
   }
-
-  #searchBtn,
-  .map-toolbar button {
-    width: 100%;
-    margin-left: 0;
-  }
 }
 
 audio,
@@ -988,7 +982,6 @@ audio {
 
 .option-btn {
   display: block;
-  width: 100%;
   text-align: left;
   padding: 0.95em 1em;
   border-radius: 0.75em;
@@ -1658,5 +1651,59 @@ MOBILE BUTTON & NAV OVERRRIDES
   .foryou-nav a {
     display: inline-block;
     padding: 0.5em 0.9em;
+  }
+}
+
+@media (max-width: 48em) {
+  /* All buttons behave the same */
+  button,
+  .follow-btn,
+  .accept-btn,
+  .decline-btn,
+  .option-btn,
+  .close-btn {
+    display: inline-flex;
+    width: fit-content !important;
+    max-width: 100%;
+    padding: 0.6em 1em;
+    margin: 0.25em;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Any container holding buttons */
+  .request-actions,
+  .favorite-actions,
+  .foryou-pill-actions,
+  .explore-links,
+  .music-links,
+  .map-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5em;
+  }
+
+  /* Prevent weird stretching from flex parents */
+  .user-item,
+  .favorite-item,
+  .foryou-pill-row,
+  .list {
+    align-items: center !important;
+  }
+}
+
+@media (max-width: 48em) {
+  .map-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75em;
+  }
+
+  .map-toolbar input {
+    width: 100%;
+    max-width: 20em;
   }
 }
