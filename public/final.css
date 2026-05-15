@@ -1669,17 +1669,27 @@ MOBILE BUTTON & NAV OVERRRIDES
 }
 
 /* map button fix for desktop */
-#searchBtn {
-  display: inline-flex;
-  width: fit-content;
-  max-width: none;
-  align-self: center;
-  padding: 0.6em 1.2em;
-  white-space: nowrap;
-}
+@media (min-width: 48em) {
+  .map-toolbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+  }
 
-.map-toolbar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  .map-toolbar label {
+    margin-right: 0.5em;
+    white-space: nowrap;
+  }
+
+  .map-toolbar input {
+    flex: 1;
+    max-width: 20em;
+  }
+
+  #searchBtn {
+    margin: 0;
+    white-space: nowrap;
+  }
 }
