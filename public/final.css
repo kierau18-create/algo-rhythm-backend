@@ -755,15 +755,10 @@ RESPONSIVE
     width: 100%;
   }
 
-  #searchBtn {
-    margin-left: 0;
+  #searchBtn,
+  .map-toolbar button {
     width: 100%;
-  }
-
-  @media (max-width: 48em) {
-    .map-toolbar button {
-      width: 100%;
-    }
+    margin-left: 0;
   }
 }
 
@@ -772,6 +767,61 @@ img,
 svg {
   max-width: 100%;
   height: auto;
+}
+
+/* =======================
+MOBILE BUTTON FIXES
+======================= */
+
+@media (max-width: 48em) {
+  /* Generic buttons */
+  button,
+  .follow-btn,
+  .accept-btn,
+  .decline-btn,
+  .option-btn,
+  .close-btn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* User rows stack vertically */
+  .user-item,
+  .favorite-item,
+  .foryou-pill-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Button containers wrap properly */
+  .request-actions,
+  .favorite-actions,
+  .foryou-pill-links,
+  .foryou-pill-actions,
+  .explore-links,
+  .music-links {
+    width: 100%;
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+
+  /* Buttons inside grouped actions */
+  .request-actions button,
+  .favorite-actions button,
+  .foryou-pill-actions button,
+  .foryou-pill-links a,
+  .explore-links a,
+  .music-links a {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  /* Prevent long usernames/emails from pushing layout */
+  .user-text,
+  .favorite-text,
+  .foryou-pill-stack {
+    width: 100%;
+  }
 }
 
 /* =======================
