@@ -774,53 +774,41 @@ MOBILE BUTTON FIXES
 ======================= */
 
 @media (max-width: 48em) {
-  /* Generic buttons */
+  /* Stack rows nicely and center content */
+  .user-item,
+  .favorite-item,
+  .foryou-pill-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Center button groups */
+  .request-actions,
+  .favorite-actions,
+  .foryou-pill-actions,
+  .explore-links,
+  .music-links {
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  /* Buttons shrink to fit text instead of stretching */
   button,
   .follow-btn,
   .accept-btn,
   .decline-btn,
   .option-btn,
   .close-btn {
-    width: 100%;
+    width: auto;
     max-width: 100%;
   }
 
-  /* User rows stack vertically */
-  .user-item,
-  .favorite-item,
-  .foryou-pill-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  /* Button containers wrap properly */
-  .request-actions,
-  .favorite-actions,
-  .foryou-pill-links,
-  .foryou-pill-actions,
-  .explore-links,
-  .music-links {
-    width: 100%;
-    justify-content: stretch;
-    flex-wrap: wrap;
-  }
-
-  /* Buttons inside grouped actions */
-  .request-actions button,
-  .favorite-actions button,
-  .foryou-pill-actions button,
-  .foryou-pill-links a,
+  /* Links behave like centered buttons */
   .explore-links a,
   .music-links a {
-    flex: 1 1 100%;
-    width: 100%;
-  }
-
-  /* Prevent long usernames/emails from pushing layout */
-  .user-text,
-  .favorite-text,
-  .foryou-pill-stack {
-    width: 100%;
+    width: auto;
   }
 }
 
