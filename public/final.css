@@ -1506,7 +1506,7 @@ MUSIC MAP
   width: auto;
   padding: 0.6em 1.2em;
   font-size: 1em;
-  margin: 0.8em 0;
+  border-radius: 0.6em;
 }
 
 .map-toolbar {
@@ -1577,9 +1577,10 @@ MUSIC MAP
 /* =======================
 MOBILE BUTTON & NAV OVERRRIDES
 ======================= */
-
 @media (max-width: 48em) {
-  /* CENTER ALL BUTTON ROWS */
+  /* =======================
+  CENTER ALL BUTTON ROWS
+  ======================= */
   .request-actions,
   .favorite-actions,
   .foryou-pill-actions,
@@ -1593,31 +1594,35 @@ MOBILE BUTTON & NAV OVERRRIDES
     gap: 0.6em;
   }
 
-  /* BUTTONS SHOULD SIZE TO CONTENT */
-  @media (max-width: 48em) {
-    button:not(.map-btn),
-    .follow-btn,
-    .accept-btn,
-    .decline-btn,
-    .option-btn,
-    .close-btn {
-      display: inline-flex;
-      width: fit-content !important;
-      max-width: 100%;
-      padding: 0.6em 1em;
-      margin: 0.25em;
-      justify-content: center;
-      align-items: center;
-    }
-  }
-
-  /* MAP SPECIFIC FIX */
-  .map-toolbar button {
+  /* =======================
+  BUTTONS SIZE TO CONTENT (MOBILE ONLY)
+  ======================= */
+  button:not(.map-btn),
+  .follow-btn,
+  .accept-btn,
+  .decline-btn,
+  .option-btn,
+  .close-btn {
+    display: inline-flex;
     width: fit-content;
-    margin: 0;
+    max-width: 100%;
+    padding: 0.6em 1em;
+    margin: 0.25em;
+    justify-content: center;
+    align-items: center;
   }
 
-  /* NAV CONSISTENT WIDTH CONTAINER */
+  /* =======================
+  MAP BUTTON FIX (MOBILE ONLY)
+  ======================= */
+  .map-btn {
+    width: auto;
+    margin: 0.25em 0;
+  }
+
+  /* =======================
+  NAV CONSISTENCY
+  ======================= */
   nav,
   .foryou-nav {
     width: 92%;
@@ -1635,25 +1640,30 @@ MOBILE BUTTON & NAV OVERRRIDES
     padding: 0.5em 0.9em;
   }
 
-  /* SIDEBARS CONSISTENT WIDTH */
+  /* =======================
+  SIDEBARS CONSISTENT WIDTH
+  ======================= */
   aside,
   .foryou-sidebar {
     width: 92%;
     max-width: 32em;
     margin: 1em auto;
   }
-}
 
-@media (max-width: 48em) {
+  /* =======================
+  PAGE WIDTH CONTROL
+  ======================= */
+  .page-container {
+    width: 92%;
+    max-width: 32em;
+    margin: 0 auto;
+  }
+
+  /* =======================
+  STACK BODY LAYOUT
+  ======================= */
   body {
     flex-direction: column;
     align-items: center;
   }
-}
-
-/* MAKE MAIN CONTENT LESS WIDE ON MOBILE */
-.page-container {
-  width: 92%;
-  max-width: 32em; /* match your nav/sidebar feel */
-  margin: 0 auto;
 }
