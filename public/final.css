@@ -1501,6 +1501,14 @@ ABOUT US PAGE
 MUSIC MAP
 ======================= */
 
+.map-btn {
+  display: inline-flex;
+  width: auto;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  margin: 0.8em 0;
+}
+
 .map-toolbar {
   width: 100%;
   max-width: 32em;
@@ -1586,17 +1594,21 @@ MOBILE BUTTON & NAV OVERRRIDES
   }
 
   /* BUTTONS SHOULD SIZE TO CONTENT */
-  button,
-  .follow-btn,
-  .accept-btn,
-  .decline-btn,
-  .option-btn,
-  .close-btn {
-    width: fit-content;
-    max-width: 100%;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
+  @media (max-width: 48em) {
+    button:not(.map-btn),
+    .follow-btn,
+    .accept-btn,
+    .decline-btn,
+    .option-btn,
+    .close-btn {
+      display: inline-flex;
+      width: fit-content !important;
+      max-width: 100%;
+      padding: 0.6em 1em;
+      margin: 0.25em;
+      justify-content: center;
+      align-items: center;
+    }
   }
 
   /* MAP SPECIFIC FIX */
