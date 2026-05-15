@@ -1530,10 +1530,11 @@ MUSIC MAP
 }
 
 #searchBtn {
+  display: inline-block;
+  width: auto;
   max-width: 100%;
-  width: 100%;
-  margin-top: 0.8em;
-  margin-bottom: 0.8em;
+  margin: 0.8em auto;
+  padding: 0.6em 1.2em;
   box-sizing: border-box;
 }
 
@@ -1618,5 +1619,44 @@ MOBILE BUTTON & NAV OVERRRIDES
   .favorite-item,
   .list {
     justify-content: center;
+  }
+}
+
+@media (max-width: 48em) {
+  .map-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75em;
+  }
+
+  #searchBtn {
+    width: auto !important;
+  }
+}
+
+@media (max-width: 48em) {
+  aside,
+  .foryou-sidebar {
+    width: 92%;
+    max-width: 28em;
+    margin: 1em auto;
+    border-radius: 0.8em;
+  }
+
+  nav,
+  .foryou-nav {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75em;
+  }
+
+  nav a,
+  .foryou-nav a {
+    display: inline-block;
+    padding: 0.5em 0.9em;
   }
 }
