@@ -1667,3 +1667,19 @@ MOBILE BUTTON & NAV OVERRRIDES
     align-items: center;
   }
 }
+
+/* map button fix for desktop */
+#searchBtn {
+  display: inline-flex;
+  width: fit-content;
+  max-width: none;
+  align-self: center;
+  padding: 0.6em 1.2em;
+  white-space: nowrap;
+}
+
+.map-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
