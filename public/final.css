@@ -1560,3 +1560,67 @@ MUSIC MAP
   fill: var(--accent-teal);
   font-size: 1.2em;
 }
+
+/* =======================
+MOBILE BUTTON & NAV OVERRRIDES
+======================= */
+
+@media (max-width: 48em) {
+  /* Force button content sizing correctly */
+  button,
+  .follow-btn,
+  .accept-btn,
+  .decline-btn,
+  .option-btn,
+  .close-btn {
+    width: fit-content !important;
+    max-width: 90%;
+    align-self: center;
+  }
+
+  /* Center ALL button containers */
+  .request-actions,
+  .favorite-actions,
+  .foryou-pill-actions,
+  .explore-links,
+  .music-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* Make list rows behave nicely */
+  .user-item,
+  .favorite-item,
+  .foryou-pill-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 48em) {
+  aside,
+  .foryou-sidebar {
+    width: 92%;
+    max-width: 28em;
+    margin: 0.75em auto;
+    border-radius: 0.8em;
+  }
+
+  nav,
+  .foryou-nav {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    flex-wrap: wrap;
+  }
+
+  nav a,
+  .foryou-nav a {
+    font-size: 1em;
+    padding: 0.5em 0.9em;
+    display: inline-block;
+  }
+}
